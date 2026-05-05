@@ -1,0 +1,60 @@
+# Dependencies
+node_modules/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment variables (keep .env as per instructions)
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Build outputs
+dist/
+build/
+.next/
+out/
+.vite/
+
+# Uploads and media (protect sensitive images/files)
+admin_backend/upload/
+**/upload/
+**/uploads/
+public/uploads/
+
+# Testing / Coverage
+coverage/
+.nyc_output
+*.lcov
+
+# IDE / Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Temporary
+.tmp
+.temp
+
+# Keys
+*.pem
+*key.pem
