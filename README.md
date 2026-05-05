@@ -62,9 +62,9 @@ npm run dev
 ```
 
 ### 4. Access
-- **User Store**: http://localhost:3000
-- **Admin Dashboard**: http://localhost:5173 (admin_backend port)
-- **APIs**: Check .env for ports (default 4001/4002)
+- **User Store**: http://localhost:3000 (user_backend port 5000)
+- **Admin Dashboard**: http://localhost:3001 (admin_backend port 5001)
+- **APIs**: Check .env for ports 
 
 ## 🔧 Configuration
 - Copy `.env.example` to `.env` in each subdir.
@@ -79,12 +79,6 @@ npm run dev
 | `npm run lint` | Lint code |
 | `npm run preview` | Preview build |
 
-## 🤝 Contributing
-1. Fork & clone.
-2. Install deps.
-3. Create branch: `git checkout -b feature/xyz`.
-4. Commit: `git commit -m "feat: add xyz"`.
-5. Push & PR.
 
 ## 📄 License
 MIT
