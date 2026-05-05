@@ -60,7 +60,7 @@ router.get("/sitemap.xml", SeoController.generateSitemap);
 router.get("/settings/public", settingController.getPublicSettings);
 
 // Public auth routes (no auth required)
-router.post("/auth/login", (req, res, next) => {
+router.post("/auth/login", if (process.env.NODE_ENV === 'development'){(req, res, next) => {
   console.log('🔐 [ROUTE] POST /auth/login received:', {
     method: req.method,
     url: req.url,
@@ -68,7 +68,7 @@ router.post("/auth/login", (req, res, next) => {
     body: req.body
   });
   next();
-}, authLimiter, authController.login);
+}}, authLimiter, authController.login);
 router.post("/auth/login-otp", authLimiter, authController.loginOtp);
 router.post("/auth/verify", authLimiter, authController.verify);
 router.post("/auth/resend-otp", authLimiter, authController.resendOtp);
@@ -91,17 +91,6 @@ router.use((req, res, next) => {
   }
   return generalLimiter(req, res, next);
 });
-// Public auth routes (no auth required)
-// router.post("/auth/login", authLimiter, authController.login);
-// router.post("/auth/login-otp", authLimiter, authController.loginOtp);
-// router.post("/auth/verify", authLimiter, authController.verify);
-// router.post("/auth/resend-otp", authLimiter, authController.resendOtp);
-
-// router.post("/register", siteController.register);
-// router.post("/auth/verify-account", siteController.verifyAccount);
-// router.post("/auth/forgot-password", siteController.forgotPassword);
-
-// ========== PUBLIC ROUTES ==========
 
 // Category routes (PUBLIC — no auth)
 router.get("/categories", categoryController.getAllCategories);
