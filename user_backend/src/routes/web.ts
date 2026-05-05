@@ -60,15 +60,7 @@ router.get("/sitemap.xml", SeoController.generateSitemap);
 router.get("/settings/public", settingController.getPublicSettings);
 
 // Public auth routes (no auth required)
-router.post("/auth/login", if (process.env.NODE_ENV === 'development'){(req, res, next) => {
-  console.log('🔐 [ROUTE] POST /auth/login received:', {
-    method: req.method,
-    url: req.url,
-    headers: req.headers,
-    body: req.body
-  });
-  next();
-}}, authLimiter, authController.login);
+router.post("/auth/login", authLimiter, authController.login);
 router.post("/auth/login-otp", authLimiter, authController.loginOtp);
 router.post("/auth/verify", authLimiter, authController.verify);
 router.post("/auth/resend-otp", authLimiter, authController.resendOtp);
