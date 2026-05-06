@@ -118,3 +118,14 @@ export async function invalidateSettingsCache(): Promise<void> {
     console.error("Error invalidating cache:", error);
   }
 }
+
+// Lazy import to avoid circular deps
+export const getSettingValue = async (key: string, fallback = ''): Promise<string> => {
+  try {
+    const Setting = (await import('../models/settingModel')).default;
+    const setting = await Setting.findOne({ key }).lean() as any;
+    return setting?.value || fallback;
+  } catch {
+    return fallback;
+  }
+};

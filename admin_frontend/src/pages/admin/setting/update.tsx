@@ -21,6 +21,7 @@ import { CaptchaTab } from "./components/CaptchaTab";
 import { SocialTab } from "./components/SocialTab";
 import { ContentTab } from "./components/ContentTab";
 import { PaymentTab } from "./components/PaymentTab";
+import { ThemeTab } from "./components/ThemeTab";
 import { useAuth } from "@/context/AuthContext";
 
 export default function SettingUpdate() {
@@ -194,7 +195,7 @@ export default function SettingUpdate() {
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="general" className="w-full">
-            <TabsList className="grid w-full grid-cols-7">
+            <TabsList className="grid w-full grid-cols-8">
               <TabsTrigger value="general">General</TabsTrigger>
               <TabsTrigger value="logo">Logo</TabsTrigger>
               <TabsTrigger value="mail">Mail</TabsTrigger>
@@ -202,6 +203,7 @@ export default function SettingUpdate() {
               <TabsTrigger value="social">Social Login</TabsTrigger>
               <TabsTrigger value="content">Content</TabsTrigger>
               <TabsTrigger value="payment">Payment</TabsTrigger>
+              <TabsTrigger value="theme">Theme & Store</TabsTrigger>
             </TabsList>
             <TabsContent value="general">
               <GeneralTab
@@ -251,6 +253,10 @@ export default function SettingUpdate() {
               <PaymentTab
                 canEdit={hasPermission("admin/setting/update")}
               />
+            </TabsContent>
+
+            <TabsContent value="theme">
+              <ThemeTab settings={settings as Record<string, string>} />
             </TabsContent>
           </Tabs>
         </CardContent>

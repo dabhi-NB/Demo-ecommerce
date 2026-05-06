@@ -63,6 +63,18 @@ export default [
   route("/admin/coupons/update/:id", "pages/admin/coupon/update.tsx"),
 
 
+
+  // nav management routes
+  route("/admin/nav", "pages/admin/nav/index.tsx"),
+  route("/admin/nav/create", "pages/admin/nav/create.tsx"),
+  route("/admin/nav/update/:id", "pages/admin/nav/update.tsx"),
+
+  // feature toggles
+  route("/admin/features", "pages/admin/features/index.tsx"),
+
+  // inventory
+  route("/admin/inventory", "pages/admin/inventory/index.tsx"),
+
   // account
   route("/admin/account/update", "pages/admin/account/update.tsx"),
   route("/admin/account/change_password", "pages/admin/account/change_password.tsx"),

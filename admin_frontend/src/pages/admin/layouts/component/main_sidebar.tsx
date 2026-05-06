@@ -21,6 +21,10 @@ import {
   Monitor,
   Activity,
   Mail,
+  Navigation,
+  ToggleLeft,
+  Warehouse,
+  Upload,
 } from "lucide-react";
 import { NavGroup, type NavGroupProps } from "./nav-group";
 import { NavUser } from "./nav-user";
@@ -179,6 +183,29 @@ const sidebarData: SidebarData = {
           url: "/admin/admin",
           icon: UserCog,
           permission: "admin/admin",
+        },
+      ],
+    },
+    {
+      title: "Store",
+      items: [
+        {
+          title: "Navigation",
+          url: "/admin/nav",
+          icon: Navigation,
+          permission: "admin/nav",
+        },
+        {
+          title: "Feature Toggles",
+          url: "/admin/features",
+          icon: ToggleLeft,
+          permission: "admin/features",
+        },
+        {
+          title: "Inventory",
+          url: "/admin/inventory",
+          icon: Warehouse,
+          permission: "admin/inventory",
         },
       ],
     },

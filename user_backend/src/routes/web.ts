@@ -34,6 +34,7 @@ import {
 } from '../controllers/accountController'
 import { getCart, syncCart, addToCart, updateCartItem, removeFromCart, clearCart as clearCartCtrl } from '../controllers/cartController'
 import { getWishlist, toggleWishlist, clearWishlist as clearWishlistCtrl } from '../controllers/wishlistController'
+import { initiatePayment, verifyPayment, paymentWebhook, getPaymentStatus } from '../controllers/paymentController'
 
 const router: Router = Router();
 
@@ -190,5 +191,13 @@ router.get(
 );
 router.get("/copy-secret-key", authController.getTotpModel);
 router.post("/remove-totp", authController.removeTotp);
+
+// ============================================================
+// PAYMENT ROUTES
+// ============================================================
+router.post('/payment/initiate', userAuthMiddleware, initiatePayment)
+router.post('/payment/verify', userAuthMiddleware, verifyPayment)
+router.post('/payment/webhook', paymentWebhook)  // no auth - razorpay calls this
+router.get('/payment/status/:orderId', userAuthMiddleware, getPaymentStatus)
 
 export default router;
