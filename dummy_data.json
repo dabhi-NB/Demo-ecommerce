@@ -1,0 +1,266 @@
+{
+  "_readme": "Demo E-Commerce - Complete Test Dataset. Import this data into MongoDB for testing.",
+  
+  "settings": [
+    { "key": "setting.app_name", "value": "Demo Store", "type": 0 },
+    { "key": "setting.admin_email", "value": "admin@demo.com", "type": 0 },
+    { "key": "setting.user_email_verify", "value": "false", "type": 0 },
+    { "key": "setting.user_login_with_otp", "value": "false", "type": 0 },
+    { "key": "setting.cookie_consent", "value": "true", "type": 0 },
+    { "key": "payment.cod_enabled", "value": "true", "type": 0 },
+    { "key": "payment.online_payment_enabled", "value": "true", "type": 0 },
+    { "key": "payment.payment_gateway", "value": "razorpay", "type": 0 },
+    { "key": "payment.payment_mode", "value": "test", "type": 0 },
+    { "key": "feature.sub_categories", "value": "true", "type": 0 },
+    { "key": "feature.product_variants", "value": "true", "type": 0 },
+    { "key": "feature.bulk_stock", "value": "true", "type": 0 },
+    { "key": "feature.guest_checkout", "value": "false", "type": 0 },
+    { "key": "feature.wallet", "value": "false", "type": 0 },
+    { "key": "feature.coupon_system", "value": "true", "type": 0 },
+    { "key": "feature.sms_notifications", "value": "false", "type": 0 },
+    { "key": "feature.review_system", "value": "true", "type": 0 },
+    { "key": "feature.wishlist", "value": "true", "type": 0 },
+    { "key": "feature.invoice_download", "value": "true", "type": 0 },
+    { "key": "theme.primary_color", "value": "#6366f1", "type": 0 },
+    { "key": "theme.secondary_color", "value": "#f59e0b", "type": 0 },
+    { "key": "theme.font", "value": "Inter", "type": 0 },
+    { "key": "theme.dark_mode", "value": "false", "type": 0 },
+    { "key": "store.type", "value": "fashion", "type": 0 },
+    { "key": "store.currency", "value": "INR", "type": 0 },
+    { "key": "store.currency_symbol", "value": "₹", "type": 0 }
+  ],
+
+  "nav_items": [
+    { "label": "Home", "url": "/", "icon": "home", "order": 1, "isActive": true, "isExternal": false, "openInNewTab": false, "parent": null, "location": "header", "visibleTo": "all" },
+    { "label": "Shop", "url": "/shop/products", "icon": "shopping-bag", "order": 2, "isActive": true, "isExternal": false, "openInNewTab": false, "parent": null, "location": "header", "visibleTo": "all" },
+    { "label": "Categories", "url": "/shop/category", "icon": "grid", "order": 3, "isActive": true, "isExternal": false, "openInNewTab": false, "parent": null, "location": "header", "visibleTo": "all" },
+    { "label": "Contact", "url": "/contact", "icon": "mail", "order": 4, "isActive": true, "isExternal": false, "openInNewTab": false, "parent": null, "location": "header", "visibleTo": "all" },
+    { "label": "About Us", "url": "/page/about-us", "icon": "info", "order": 1, "isActive": true, "isExternal": false, "openInNewTab": false, "parent": null, "location": "footer", "visibleTo": "all" },
+    { "label": "Privacy Policy", "url": "/page/privacy-policy", "icon": "", "order": 2, "isActive": true, "isExternal": false, "openInNewTab": false, "parent": null, "location": "footer", "visibleTo": "all" },
+    { "label": "Terms & Conditions", "url": "/page/terms", "icon": "", "order": 3, "isActive": true, "isExternal": false, "openInNewTab": false, "parent": null, "location": "footer", "visibleTo": "all" }
+  ],
+
+  "categories": [
+    { "name": "Electronics", "slug": "electronics", "description": "All electronic gadgets and devices", "isActive": true, "sortOrder": 1, "parent": null, "level": 0, "path": "electronics" },
+    { "name": "Mobiles", "slug": "mobiles", "description": "Smartphones and mobile phones", "isActive": true, "sortOrder": 1, "parent": "__ELECTRONICS_ID__", "level": 1, "path": "electronics/mobiles" },
+    { "name": "Laptops", "slug": "laptops", "description": "Laptops and notebooks", "isActive": true, "sortOrder": 2, "parent": "__ELECTRONICS_ID__", "level": 1, "path": "electronics/laptops" },
+    { "name": "Accessories", "slug": "electronics-accessories", "description": "Cables, chargers, cases", "isActive": true, "sortOrder": 3, "parent": "__ELECTRONICS_ID__", "level": 1, "path": "electronics/accessories" },
+    { "name": "Fashion", "slug": "fashion", "description": "Clothing and accessories", "isActive": true, "sortOrder": 2, "parent": null, "level": 0, "path": "fashion" },
+    { "name": "Men's Clothing", "slug": "mens-clothing", "description": "T-shirts, shirts, trousers", "isActive": true, "sortOrder": 1, "parent": "__FASHION_ID__", "level": 1, "path": "fashion/mens-clothing" },
+    { "name": "Women's Clothing", "slug": "womens-clothing", "description": "Dresses, tops, sarees", "isActive": true, "sortOrder": 2, "parent": "__FASHION_ID__", "level": 1, "path": "fashion/womens-clothing" },
+    { "name": "Home & Kitchen", "slug": "home-kitchen", "description": "Home decor and kitchen items", "isActive": true, "sortOrder": 3, "parent": null, "level": 0, "path": "home-kitchen" },
+    { "name": "Cookware", "slug": "cookware", "description": "Pots, pans, and utensils", "isActive": true, "sortOrder": 1, "parent": "__HOME_ID__", "level": 1, "path": "home-kitchen/cookware" },
+    { "name": "Decor", "slug": "decor", "description": "Wall art, vases, cushions", "isActive": true, "sortOrder": 2, "parent": "__HOME_ID__", "level": 1, "path": "home-kitchen/decor" }
+  ],
+
+  "products": [
+    {
+      "name": "Premium Wireless Headphones",
+      "slug": "premium-wireless-headphones",
+      "description": "High-quality wireless headphones with active noise cancellation, 30-hour battery life, and premium sound quality.",
+      "price": 4999,
+      "salePrice": 3499,
+      "stock": 50,
+      "sku": "WH-001",
+      "isActive": true,
+      "isFeatured": true,
+      "category": "__ELECTRONICS_ID__",
+      "tags": ["headphones", "wireless", "audio"],
+      "images": [],
+      "hasVariants": false,
+      "variants": []
+    },
+    {
+      "name": "Cotton T-Shirt",
+      "slug": "cotton-t-shirt",
+      "description": "Premium 100% cotton t-shirt, comfortable for everyday wear. Available in multiple colors and sizes.",
+      "price": 699,
+      "salePrice": 499,
+      "stock": 0,
+      "sku": "TS-001",
+      "isActive": true,
+      "isFeatured": true,
+      "category": "__MENS_ID__",
+      "tags": ["tshirt", "cotton", "casual"],
+      "images": [],
+      "hasVariants": true,
+      "variants": [
+        { "combination": [{"name": "Color", "value": "Black"}, {"name": "Size", "value": "S"}], "price": 699, "salePrice": 499, "stock": 25, "sku": "TS-001-BLK-S", "isActive": true },
+        { "combination": [{"name": "Color", "value": "Black"}, {"name": "Size", "value": "M"}], "price": 699, "salePrice": 499, "stock": 30, "sku": "TS-001-BLK-M", "isActive": true },
+        { "combination": [{"name": "Color", "value": "Black"}, {"name": "Size", "value": "L"}], "price": 699, "salePrice": 499, "stock": 20, "sku": "TS-001-BLK-L", "isActive": true },
+        { "combination": [{"name": "Color", "value": "White"}, {"name": "Size", "value": "S"}], "price": 699, "salePrice": 499, "stock": 15, "sku": "TS-001-WHT-S", "isActive": true },
+        { "combination": [{"name": "Color", "value": "White"}, {"name": "Size", "value": "M"}], "price": 699, "salePrice": 499, "stock": 18, "sku": "TS-001-WHT-M", "isActive": true },
+        { "combination": [{"name": "Color", "value": "Navy Blue"}, {"name": "Size", "value": "L"}], "price": 699, "salePrice": 499, "stock": 0, "sku": "TS-001-NVY-L", "isActive": true }
+      ]
+    },
+    {
+      "name": "Stainless Steel Water Bottle",
+      "slug": "stainless-steel-water-bottle",
+      "description": "Double-wall insulated stainless steel water bottle. Keeps drinks cold for 24 hours and hot for 12 hours.",
+      "price": 899,
+      "salePrice": null,
+      "stock": 120,
+      "sku": "WB-001",
+      "isActive": true,
+      "isFeatured": false,
+      "category": "__HOME_ID__",
+      "tags": ["bottle", "kitchen", "insulated"],
+      "images": [],
+      "hasVariants": true,
+      "variants": [
+        { "combination": [{"name": "Size", "value": "500ml"}], "price": 699, "salePrice": null, "stock": 60, "sku": "WB-001-500", "isActive": true },
+        { "combination": [{"name": "Size", "value": "750ml"}], "price": 899, "salePrice": null, "stock": 60, "sku": "WB-001-750", "isActive": true }
+      ]
+    },
+    {
+      "name": "USB-C Fast Charging Cable",
+      "slug": "usb-c-fast-charging-cable",
+      "description": "6ft braided USB-C cable supporting 65W fast charging. Compatible with all USB-C devices.",
+      "price": 299,
+      "salePrice": 199,
+      "stock": 200,
+      "sku": "CBL-001",
+      "isActive": true,
+      "isFeatured": false,
+      "category": "__ACCESSORIES_ID__",
+      "tags": ["cable", "usb-c", "charger"],
+      "images": [],
+      "hasVariants": false,
+      "variants": []
+    },
+    {
+      "name": "Non-Stick Frying Pan Set",
+      "slug": "non-stick-frying-pan-set",
+      "description": "3-piece non-stick frying pan set (8\", 10\", 12\"). PFOA-free coating with heat-resistant handles.",
+      "price": 2499,
+      "salePrice": 1799,
+      "stock": 5,
+      "sku": "PAN-001",
+      "isActive": true,
+      "isFeatured": true,
+      "category": "__COOKWARE_ID__",
+      "tags": ["cookware", "pan", "nonstick", "kitchen"],
+      "images": [],
+      "hasVariants": false,
+      "variants": []
+    }
+  ],
+
+  "coupons": [
+    {
+      "code": "WELCOME10",
+      "description": "10% off on your first order",
+      "discountType": "percentage",
+      "discountValue": 10,
+      "minOrderAmount": 500,
+      "maxDiscount": 200,
+      "usageLimit": 1000,
+      "usageCount": 0,
+      "isActive": true,
+      "expiryDate": "2026-12-31"
+    },
+    {
+      "code": "FLAT100",
+      "description": "Flat ₹100 off on orders above ₹999",
+      "discountType": "flat",
+      "discountValue": 100,
+      "minOrderAmount": 999,
+      "maxDiscount": 100,
+      "usageLimit": 500,
+      "usageCount": 0,
+      "isActive": true,
+      "expiryDate": "2026-12-31"
+    },
+    {
+      "code": "SUMMER25",
+      "description": "25% off summer sale (max ₹500 discount)",
+      "discountType": "percentage",
+      "discountValue": 25,
+      "minOrderAmount": 1000,
+      "maxDiscount": 500,
+      "usageLimit": 200,
+      "usageCount": 0,
+      "isActive": true,
+      "expiryDate": "2026-08-31"
+    }
+  ],
+
+  "users": [
+    { "name": "Amit Shah", "email": "amit@demo.com", "phone": "9876543210", "password": "Test@1234 (hashed)", "isActive": true, "isEmailVerified": true },
+    { "name": "Priya Patel", "email": "priya@demo.com", "phone": "9876543211", "password": "Test@1234 (hashed)", "isActive": true, "isEmailVerified": true },
+    { "name": "Rahul Gupta", "email": "rahul@demo.com", "phone": "9876543212", "password": "Test@1234 (hashed)", "isActive": true, "isEmailVerified": true },
+    { "name": "Sneha Joshi", "email": "sneha@demo.com", "phone": "9876543213", "password": "Test@1234 (hashed)", "isActive": true, "isEmailVerified": true },
+    { "name": "Vikram Singh", "email": "vikram@demo.com", "phone": "9876543214", "password": "Test@1234 (hashed)", "isActive": false, "isEmailVerified": false }
+  ],
+
+  "orders_sample": [
+    {
+      "note": "Sample order data - actual orders reference real user/product ObjectIds",
+      "status": "delivered",
+      "paymentMethod": "cod",
+      "paymentStatus": "paid",
+      "subtotal": 3499,
+      "discount": 350,
+      "shippingCharge": 0,
+      "totalAmount": 3149
+    },
+    {
+      "note": "Sample order data",
+      "status": "processing",
+      "paymentMethod": "online",
+      "paymentStatus": "paid",
+      "subtotal": 1198,
+      "discount": 0,
+      "shippingCharge": 49,
+      "totalAmount": 1247
+    },
+    {
+      "note": "Sample order data",
+      "status": "pending",
+      "paymentMethod": "cod",
+      "paymentStatus": "pending",
+      "subtotal": 799,
+      "discount": 100,
+      "shippingCharge": 49,
+      "totalAmount": 748
+    },
+    {
+      "note": "Sample order data",
+      "status": "shipped",
+      "paymentMethod": "online",
+      "paymentStatus": "paid",
+      "subtotal": 2499,
+      "discount": 0,
+      "shippingCharge": 0,
+      "totalAmount": 2499
+    },
+    {
+      "note": "Sample order data",
+      "status": "cancelled",
+      "paymentMethod": "cod",
+      "paymentStatus": "pending",
+      "subtotal": 499,
+      "discount": 0,
+      "shippingCharge": 49,
+      "totalAmount": 548
+    }
+  ],
+
+  "admin_credentials": {
+    "note": "Create admin via admin_backend/src/server.ts seed or direct DB insert",
+    "email": "admin@demo.com",
+    "password": "Admin@1234",
+    "role": "super_admin"
+  },
+
+  "import_instructions": {
+    "step1": "Start MongoDB and connect",
+    "step2": "Import settings: db.settings.insertMany(dummy_data.settings)",
+    "step3": "Import nav items: db.nav_items.insertMany(dummy_data.nav_items)",
+    "step4": "Import root categories first, then sub-categories with correct parent ObjectIds",
+    "step5": "Import products with correct category ObjectIds",
+    "step6": "Import coupons: db.coupons.insertMany(dummy_data.coupons)",
+    "step7": "Create admin user via POST /auth/register or direct DB with hashed password",
+    "note": "Replace __ELECTRONICS_ID__, __FASHION_ID__, etc. with actual MongoDB ObjectIds after inserting root categories"
+  }
+}
