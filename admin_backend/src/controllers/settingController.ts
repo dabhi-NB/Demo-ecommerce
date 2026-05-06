@@ -436,7 +436,7 @@ export const addPaymentGateway = asyncHandler(async (req: any, res: any) => {
   if (existingSetting?.value) {
     try {
       gateways = JSON.parse(existingSetting.value);
-    } catch {}
+    } catch { }
   }
 
   // If isDefault, unset others
@@ -460,7 +460,7 @@ export const updatePaymentGateway = asyncHandler(async (req: any, res: any) => {
   if (existingSetting?.value) {
     try {
       gateways = JSON.parse(existingSetting.value);
-    } catch {}
+    } catch { }
   }
 
   const idx = gateways.findIndex((gw) => gw.id === gatewayId);
@@ -521,7 +521,7 @@ export const deletePaymentGateway = asyncHandler(async (req: any, res: any) => {
   if (existingSetting?.value) {
     try {
       gateways = JSON.parse(existingSetting.value);
-    } catch {}
+    } catch { }
   }
 
   const idx = gateways.findIndex((gw) => gw.id === gatewayId);
@@ -552,4 +552,60 @@ export const updatePaymentSettings = asyncHandler(async (req: any, res: any) => 
   );
 
   return res.status(200).json({ success: true, message: 'Payment settings updated' });
+});
+
+
+// ── SAVE THEME SETTINGS ──
+export const saveThemeSettings = asyncHandler(async (req: Request, res: Response) => {
+  const {
+    theme_primary_color,
+    theme_secondary_color,
+    theme_font,
+    theme_dark_mode,
+  } = req.body;
+
+  const settingsMap: Record<string, any> = {
+    'theme.primary_color': theme_primary_color,
+    'theme.secondary_color': theme_secondary_color,
+    'theme.font': theme_font,
+    'theme.dark_mode': theme_dark_mode,
+  };
+
+  for (const [key, value] of Object.entries(settingsMap)) {
+    if (value !== undefined) {
+      await updateSetting(key, String(value), 0);
+    }
+  }
+
+  return res.status(200).json({
+    status: 1,
+    message: 'Theme settings saved successfully',
+  });
+});
+
+
+// ── SAVE STORE SETTINGS ──
+export const saveStoreSettings = asyncHandler(async (req: Request, res: Response) => {
+  const {
+    store_type,
+    store_currency,
+    store_currency_symbol,
+  } = req.body;
+
+  const settingsMap: Record<string, any> = {
+    'store.type': store_type,
+    'store.currency': store_currency,
+    'store.currency_symbol': store_currency_symbol,
+  };
+
+  for (const [key, value] of Object.entries(settingsMap)) {
+    if (value !== undefined) {
+      await updateSetting(key, String(value), 0);
+    }
+  }
+
+  return res.status(200).json({
+    status: 1,
+    message: 'Store settings saved successfully',
+  });
 });
