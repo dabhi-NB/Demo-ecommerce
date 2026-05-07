@@ -1,7 +1,6 @@
 import { Request, Response } from 'express';
 import { asyncHandler } from '../middlewares/asyncHandler';
-import { updateSetting } from '../utils/settings'; // ✅ FIXED: was wrongly importing from cache
-import { getCache, setCache } from '../utils/cache';
+import { updateSetting } from '../utils/settings';
 import Setting from '../models/settingModel';
 
 // ── All toggleable features ──
@@ -81,8 +80,6 @@ export const saveFeatureToggles = asyncHandler(async (req: Request, res: Respons
 
   if (bulkOps.length > 0) {
     await Setting.bulkWrite(bulkOps);
-    // Clear features cache so frontend gets fresh values
-    await setCache('features:public', null as any, 1);
   }
 
   return res.status(200).json({
@@ -96,6 +93,7 @@ export const getPublicFeatures = asyncHandler(async (_req: Request, res: Respons
   const cacheKey = 'features:public';
 
   // Try cache
+  const { getCache } = await import('../utils/cache');
   const cached = await getCache(cacheKey);
   if (cached) {
     return res.status(200).json({ status: 1, data: cached });
@@ -112,6 +110,7 @@ export const getPublicFeatures = asyncHandler(async (_req: Request, res: Respons
   }
 
   // Cache for 10 minutes
+  const { setCache } = await import('../utils/cache');
   await setCache(cacheKey, features, 600);
 
   return res.status(200).json({

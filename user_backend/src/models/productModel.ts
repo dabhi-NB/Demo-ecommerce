@@ -48,6 +48,7 @@ export interface IProduct extends Document {
   ratings: IRatings;
   isActive: boolean;
   isFeatured: boolean;
+  hasVariants: boolean;
   tags: string[];
   weight: number;
   variantOptions: IVariantOption[];
@@ -77,6 +78,7 @@ const ProductSchema: Schema = new Schema(
     },
     isActive: { type: Boolean, default: true },
     isFeatured: { type: Boolean, default: false },
+    hasVariants: { type: Boolean, default: false },
     tags: { type: [String], default: [] },
     weight: { type: Number, default: 0 },
     variantOptions: {
@@ -109,9 +111,9 @@ const ProductSchema: Schema = new Schema(
   }
 );
 
-// Virtual for total stock (sum of all variant stocks if variants exist)
+// Virtual for total stock (sum of all variant stocks if hasVariants is true)
 ProductSchema.virtual('totalStock').get(function (this: IProduct) {
-  if (this.variants && this.variants.length > 0) {
+  if (this.hasVariants && this.variants && this.variants.length > 0) {
     return this.variants
       .filter((v: any) => v.isActive)
       .reduce((sum: number, v: any) => sum + (v.stock || 0), 0);

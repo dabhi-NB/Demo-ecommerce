@@ -5,6 +5,11 @@ export interface IVariant {
   storage?: string;
 }
 
+export interface IVariantCombination {
+  name: string;
+  value: string;
+}
+
 export interface IOrderItem {
   product: Types.ObjectId;
   name: string;
@@ -15,6 +20,8 @@ export interface IOrderItem {
   variant?: IVariant;
   variantId?: string;
   variantName?: string;
+  variantCombination?: IVariantCombination[];
+  variantSku?: string;
 }
 
 export interface IShippingAddress {
@@ -76,7 +83,13 @@ const OrderSchema: Schema = new Schema(
         storage: { type: String }
       },
       variantId: { type: String, default: '' },
-      variantName: { type: String, default: '' }
+      variantName: { type: String, default: '' },
+      variantCombination: [{
+        name: { type: String },
+        value: { type: String },
+        _id: false,
+      }],
+      variantSku: { type: String, default: '' },
     }],
     shippingAddress: {
       fullName: { type: String, required: true },

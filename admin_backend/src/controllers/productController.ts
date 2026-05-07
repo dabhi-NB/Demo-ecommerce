@@ -9,20 +9,20 @@ import { logStockChange } from '../models/stockHistoryModel';
 
 // Get all products with pagination, search, and filters
 export const getProducts = asyncHandler(async (req: Request, res: Response) => {
-const page = parseInt(req.query.page as string) || 1;
-  let limit;
-  let skip;
+    const page = parseInt(req.query.page as string) || 1;
+    let limit;
+    let skip;
 
-  // Show ALL records if no limit specified
-  if (!req.query.limit || req.query.limit === '0' || req.query.limit === 'all') {
-    limit = 0; // Special flag
-  } else {
-    limit = parseInt(req.query.limit as string) || 10;
-    skip = (page - 1) * limit;
-  }
+    // Show ALL records if no limit specified
+    if (!req.query.limit || req.query.limit === '0' || req.query.limit === 'all') {
+        limit = 0; // Special flag
+    } else {
+        limit = parseInt(req.query.limit as string) || 10;
+        skip = (page - 1) * limit;
+    }
 
-  // Build query
-  const query: Record<string, any> = {};
+    // Build query
+    const query: Record<string, any> = {};
 
     // Search by name or sku
     if (req.query.q) {
@@ -56,33 +56,33 @@ const page = parseInt(req.query.page as string) || 1;
     }
 
     // Get total count
-  const total = await Product.countDocuments(query);
+    const total = await Product.countDocuments(query);
 
-  // Build sort options
-  let sort: Record<string, 1 | -1> = { createdAt: -1 };
-  if (req.query.sort) {
-    const sortField = req.query.sort as string;
-    if (sortField === 'price_asc') sort = { price: 1 };
-    else if (sortField === 'price_desc') sort = { price: -1 };
-    else if (sortField === 'name_asc') sort = { name: 1 };
-    else if (sortField === 'name_desc') sort = { name: -1 };
-  }
+    // Build sort options
+    let sort: Record<string, 1 | -1> = { createdAt: -1 };
+    if (req.query.sort) {
+        const sortField = req.query.sort as string;
+        if (sortField === 'price_asc') sort = { price: 1 };
+        else if (sortField === 'price_desc') sort = { price: -1 };
+        else if (sortField === 'name_asc') sort = { name: 1 };
+        else if (sortField === 'name_desc') sort = { name: -1 };
+    }
 
-  // Get products - ALL if no limit, else paginated
-  let products;
-  if (limit === 0) {
-    products = await Product.find(query)
-      .populate('category', 'name slug')
-      .sort(sort)
-      .lean();
-  } else {
-    products = await Product.find(query)
-      .populate('category', 'name slug')
-      .sort(sort)
-      .skip(skip || 0)
-      .limit(limit)
-      .lean();
-  }
+    // Get products - ALL if no limit, else paginated
+    let products;
+    if (limit === 0) {
+        products = await Product.find(query)
+            .populate('category', 'name slug')
+            .sort(sort)
+            .lean();
+    } else {
+        products = await Product.find(query)
+            .populate('category', 'name slug')
+            .sort(sort)
+            .skip(skip || 0)
+            .limit(limit)
+            .lean();
+    }
 
     return res.status(200).json({
         status: 1,
@@ -143,6 +143,7 @@ export const createProduct = asyncHandler(async (req: any, res: Response) => {
         stock,
         isActive,
         isFeatured,
+        hasVariants,
         tags,
         weight,
         specifications,
@@ -177,6 +178,7 @@ export const createProduct = asyncHandler(async (req: any, res: Response) => {
         stock: parseInt(stock) || 0,
         isActive: isActive !== undefined ? isActive : true,
         isFeatured: isFeatured !== undefined ? isFeatured : false,
+        hasVariants: hasVariants !== undefined ? Boolean(hasVariants) : false,
         tags: tags ? (Array.isArray(tags) ? tags : tags.split(',').map((t: string) => t.trim())) : [],
         weight: parseFloat(weight) || 0,
         specifications: specifications || [],
@@ -236,71 +238,71 @@ export const createProduct = asyncHandler(async (req: any, res: Response) => {
 
 // Update product images only (separate endpoint)
 export const updateProductImages = asyncHandler(async (req: any, res: Response) => {
-  const { id } = req.params;
+    const { id } = req.params;
 
-  // Validate ObjectId
-  if (!mongoose.Types.ObjectId.isValid(id)) {
-    return res.status(400).json({ status: 0, message: 'Invalid Product ID' });
-  }
-
-  const product = await Product.findById(id);
-
-  if (!product) {
-    return res.status(404).json({ status: 0, message: 'Product not found' });
-  }
-
-  let currentImages = product.images || [];
-
-  // Get category slug and product slug
-  const category = product.category;
-  let categorySlug = 'uncategorized';
-  if (category) {
-    try {
-      const { default: Category } = await import('../models/categoryModel');
-      const categoryDoc = await Category.findById(category).select('slug').lean();
-      if (categoryDoc && categoryDoc.slug) {
-        categorySlug = categoryDoc.slug;
-      }
-    } catch (err) {
-      console.error('Error fetching category slug:', err);
-    }
-  }
-
-  const productSlug = product.slug;
-
-  // Handle new image uploads
-  if (req.files && Array.isArray(req.files)) {
-    const newImages = req.files.map((file: any) => `${categorySlug}/${productSlug}/${file.filename}`);
-    currentImages = [...currentImages, ...newImages].slice(-5); // Keep max 5
-  }
-
-  // Handle image removal
-  if (req.body.removeImages) {
-    let imagesToRemove: string[] = [];
-    if (typeof req.body.removeImages === 'string') {
-      try {
-        imagesToRemove = JSON.parse(req.body.removeImages);
-      } catch (e) {
-        console.error('JSON parse error:', e);
-      }
-    } else if (Array.isArray(req.body.removeImages)) {
-      imagesToRemove = req.body.removeImages;
+    // Validate ObjectId
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+        return res.status(400).json({ status: 0, message: 'Invalid Product ID' });
     }
 
-    imagesToRemove.forEach((imageUrl: string) => {
-      deleteProductImage(`upload/products/${imageUrl}`);
-      currentImages = currentImages.filter((img: string) => img !== imageUrl);
+    const product = await Product.findById(id);
+
+    if (!product) {
+        return res.status(404).json({ status: 0, message: 'Product not found' });
+    }
+
+    let currentImages = product.images || [];
+
+    // Get category slug and product slug
+    const category = product.category;
+    let categorySlug = 'uncategorized';
+    if (category) {
+        try {
+            const { default: Category } = await import('../models/categoryModel');
+            const categoryDoc = await Category.findById(category).select('slug').lean();
+            if (categoryDoc && categoryDoc.slug) {
+                categorySlug = categoryDoc.slug;
+            }
+        } catch (err) {
+            console.error('Error fetching category slug:', err);
+        }
+    }
+
+    const productSlug = product.slug;
+
+    // Handle new image uploads
+    if (req.files && Array.isArray(req.files)) {
+        const newImages = req.files.map((file: any) => `${categorySlug}/${productSlug}/${file.filename}`);
+        currentImages = [...currentImages, ...newImages].slice(-5); // Keep max 5
+    }
+
+    // Handle image removal
+    if (req.body.removeImages) {
+        let imagesToRemove: string[] = [];
+        if (typeof req.body.removeImages === 'string') {
+            try {
+                imagesToRemove = JSON.parse(req.body.removeImages);
+            } catch (e) {
+                console.error('JSON parse error:', e);
+            }
+        } else if (Array.isArray(req.body.removeImages)) {
+            imagesToRemove = req.body.removeImages;
+        }
+
+        imagesToRemove.forEach((imageUrl: string) => {
+            deleteProductImage(`upload/products/${imageUrl}`);
+            currentImages = currentImages.filter((img: string) => img !== imageUrl);
+        });
+    }
+
+    product.images = currentImages;
+    await product.save();
+
+    return res.status(200).json({
+        status: 1,
+        message: 'Product images updated successfully',
+        data: product
     });
-  }
-
-  product.images = currentImages;
-  await product.save();
-
-  return res.status(200).json({
-    status: 1,
-    message: 'Product images updated successfully',
-    data: product
-  });
 });
 
 // Update product (other fields)
@@ -325,6 +327,7 @@ export const updateProduct = asyncHandler(async (req: any, res: Response) => {
         stock,
         isActive,
         isFeatured,
+        hasVariants,
         tags,
         weight,
         specifications,
@@ -356,6 +359,7 @@ export const updateProduct = asyncHandler(async (req: any, res: Response) => {
         stock: stock !== undefined ? parseInt(stock) : product.stock,
         isActive: isActive !== undefined ? isActive : product.isActive,
         isFeatured: isFeatured !== undefined ? isFeatured : product.isFeatured,
+        hasVariants: hasVariants !== undefined ? Boolean(hasVariants) : product.hasVariants,
         weight: weight !== undefined ? parseFloat(weight) : product.weight,
     };
 
@@ -382,12 +386,12 @@ export const updateProduct = asyncHandler(async (req: any, res: Response) => {
         try {
             // Prefer JSON.parse first (from frontend FormData)
             let parsedTags = typeof tags === 'string' ? JSON.parse(tags) : tags;
-            
+
             // Ensure it's an array of strings
             if (!Array.isArray(parsedTags)) {
                 parsedTags = String(tags).split(',').map((t: string) => t.trim()).filter(Boolean);
             }
-            
+
             updateData.tags = parsedTags;
             console.log('✅ Tags processed:', updateData.tags);
         } catch (e) {
