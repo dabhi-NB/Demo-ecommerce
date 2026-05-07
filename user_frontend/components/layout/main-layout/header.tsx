@@ -8,7 +8,9 @@ import { useAuth } from "@/context/AuthContext";
 import { useCart } from "@/context/CartContext";
 import { useWishlist } from "@/context/WishlistContext";
 import { getCategories, searchProducts } from "@/services/product.service";
+import { getNavItems, type NavItem } from "@/services/nav.service";
 import { useAppSettings } from "@/hooks/useAppSettings";
+import { useFeatures } from "@/hooks/useFeatures";
 import type { ICategory, IProduct } from "@/services/product.service";
 import { resolveImageUrl } from "@/lib/utils";
 import {
@@ -43,6 +45,7 @@ function isValidImageUrl(url: string | undefined | null): boolean {
 
 export default function Header() {
   const [categories, setCategories] = useState<ICategory[]>([]);
+  const [navItems, setNavItems] = useState<NavItem[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [suggestions, setSuggestions] = useState<IProduct[]>([]);
   const [suggestionsLoading, setSuggestionsLoading] = useState(false);
@@ -54,6 +57,7 @@ export default function Header() {
   const searchRef = useRef<HTMLDivElement>(null);
   const megaMenuRef = useRef<HTMLDivElement>(null);
   const { appName, logoUrl } = useAppSettings();
+  const { isEnabled } = useFeatures();
 
   const { user, isAuthenticated, logout } = useAuth();
   const { items: cartItems, totalItems } = useCart();
@@ -67,6 +71,13 @@ export default function Header() {
       .then(setCategories)
       .catch(() => {});
   }, []);
+
+  // Fetch dynamic nav items from admin
+  useEffect(() => {
+    getNavItems("header", isAuthenticated)
+      .then(setNavItems)
+      .catch(() => {});
+  }, [isAuthenticated]);
 
   // Close search dropdown on outside click
   useEffect(() => {
@@ -277,7 +288,8 @@ export default function Header() {
                   <Search size={20} />
                 </button>
 
-                {/* WISHLIST */}
+                {/* WISHLIST — only if feature enabled */}
+                {isEnabled("wishlist") && (
                 <button
                   onClick={handleWishlistClick}
                   className="relative flex flex-col items-center gap-0.5 px-2.5 py-2 rounded-xl hover:bg-muted transition-colors group/icon"
@@ -298,6 +310,7 @@ export default function Header() {
                     Wishlist
                   </span>
                 </button>
+                )}
 
                 {/* CART */}
                 <button
@@ -557,6 +570,23 @@ export default function Header() {
                   More <ChevronDown size={13} />
                 </Link>
               )}
+
+              {/* DYNAMIC NAV ITEMS from admin */}
+              {navItems.map((item) => (
+                <Link
+                  key={item._id}
+                  href={item.url}
+                  target={item.openInNewTab ? "_blank" : undefined}
+                  rel={item.isExternal ? "noopener noreferrer" : undefined}
+                  className={`px-4 py-3 text-sm whitespace-nowrap border-b-2 transition-all flex-shrink-0 font-medium ${
+                    pathname === item.url
+                      ? "border-primary text-primary font-semibold"
+                      : "border-transparent text-muted-foreground hover:text-foreground hover:border-border/60"
+                  }`}
+                >
+                  {item.label}
+                </Link>
+              ))}
             </div>
           </div>
         </div>

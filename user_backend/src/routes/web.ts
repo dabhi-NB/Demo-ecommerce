@@ -35,6 +35,7 @@ import {
 import { getCart, syncCart, addToCart, updateCartItem, removeFromCart, clearCart as clearCartCtrl } from '../controllers/cartController'
 import { getWishlist, toggleWishlist, clearWishlist as clearWishlistCtrl } from '../controllers/wishlistController'
 import { initiatePayment, verifyPayment, paymentWebhook, getPaymentStatus } from '../controllers/paymentController'
+import { getPublicNav } from '../controllers/navController'
 
 const router: Router = Router();
 
@@ -199,5 +200,10 @@ router.post('/payment/initiate', userAuthMiddleware, initiatePayment)
 router.post('/payment/verify', userAuthMiddleware, verifyPayment)
 router.post('/payment/webhook', paymentWebhook)  // no auth - razorpay calls this
 router.get('/payment/status/:orderId', userAuthMiddleware, getPaymentStatus)
+
+// ============================================================
+// NAV ITEMS (public — no auth needed)
+// ============================================================
+router.get('/nav', getPublicNav);
 
 export default router;

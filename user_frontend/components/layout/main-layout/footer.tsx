@@ -1,29 +1,68 @@
-import React from "react";
+"use client";
+
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import { useAuth } from "@/context/AuthContext";
+import { useAppSettings } from "@/hooks/useAppSettings";
+import { getNavItems, type NavItem } from "@/services/nav.service";
 
 const Footer: React.FC = () => {
   const currentYear = new Date().getFullYear();
+  const { isAuthenticated } = useAuth();
+  const { appName, store } = useAppSettings();
+  const [footerNavItems, setFooterNavItems] = useState<NavItem[]>([]);
+
+  useEffect(() => {
+    getNavItems("footer", isAuthenticated)
+      .then(setFooterNavItems)
+      .catch(() => {});
+  }, [isAuthenticated]);
 
   return (
-    <footer className=" py-6 px-15 flex flex-col md:flex-row justify-between items-center text-sm text-muted-foreground">
-      <div className="text-center md:text-left">
-        ©{currentYear}, made by{" "}
-        <a href="/" target="_blank" className="font-medium text-blue-600">
-          Next
-        </a>
-      </div>
+    <footer className="border-t border-border bg-muted/30 mt-12">
+      <div className="max-w-screen-xl mx-auto px-4 md:px-6 py-8">
+        <div className="flex flex-col md:flex-row justify-between items-start gap-6">
+          {/* Brand */}
+          <div className="space-y-1">
+            <p className="font-bold text-foreground">{appName || "Demo Store"}</p>
+            <p className="text-sm text-muted-foreground">
+              {store.currency} · {store.type?.charAt(0).toUpperCase() + (store.type?.slice(1) || "")} Store
+            </p>
+            <p className="text-xs text-muted-foreground">
+              © {currentYear} {appName}. All rights reserved.
+            </p>
+          </div>
 
-      <div className="hidden md:flex space-x-4">
-        <a
-          href="/page/termscondition"
-          target="_blank"
-          className="text-blue-600 hover:underline"
-        >
-          Terms & Condition
-        </a>
-
-        <a href="/page/privacypolicy" className="text-blue-600 hover:underline">
-          Privacy Policy
-        </a>
+          {/* Dynamic footer nav items from admin */}
+          {footerNavItems.length > 0 ? (
+            <nav className="flex flex-wrap gap-x-6 gap-y-2">
+              {footerNavItems.map((item) => (
+                <Link
+                  key={item._id}
+                  href={item.url}
+                  target={item.openInNewTab ? "_blank" : undefined}
+                  rel={item.isExternal ? "noopener noreferrer" : undefined}
+                  className="text-sm text-muted-foreground hover:text-primary transition-colors"
+                >
+                  {item.label}
+                </Link>
+              ))}
+            </nav>
+          ) : (
+            /* Fallback static links */
+            <nav className="flex flex-wrap gap-x-6 gap-y-2">
+              <Link href="/page/termscondition" className="text-sm text-muted-foreground hover:text-primary transition-colors">
+                Terms & Conditions
+              </Link>
+              <Link href="/page/privacypolicy" className="text-sm text-muted-foreground hover:text-primary transition-colors">
+                Privacy Policy
+              </Link>
+              <Link href="/contact" className="text-sm text-muted-foreground hover:text-primary transition-colors">
+                Contact
+              </Link>
+            </nav>
+          )}
+        </div>
       </div>
     </footer>
   );

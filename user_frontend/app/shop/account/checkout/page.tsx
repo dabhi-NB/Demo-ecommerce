@@ -35,7 +35,7 @@ const STEPS = ["Delivery", "Payment", "Review"];
 
 export default function CheckoutPage() {
   const router = useRouter();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const { items, totalPrice, clearCart } = useCart();
   const { payment } = useAppSettings();
 
@@ -77,13 +77,14 @@ export default function CheckoutPage() {
   // Auto-select default gateway when payment settings load
   useEffect(() => {
     if (payment.gateways.length > 0) {
-      const defaultGw = payment.gateways.find(g => g.isDefault) || payment.gateways[0];
+      const defaultGw =
+        payment.gateways.find((g) => g.isDefault) || payment.gateways[0];
       setSelectedGatewayId(defaultGw.id);
-      if (payment.onlinePaymentEnabled) setPaymentMethod('online');
-      else if (payment.codEnabled) setPaymentMethod('cod');
+      if (payment.onlinePaymentEnabled) setPaymentMethod("online");
+      else if (payment.codEnabled) setPaymentMethod("cod");
     } else {
       // Default to COD if no gateways
-      if (payment.codEnabled) setPaymentMethod('cod');
+      if (payment.codEnabled) setPaymentMethod("cod");
     }
   }, [payment]);
 
@@ -92,7 +93,9 @@ export default function CheckoutPage() {
   const total = totalPrice + shipping - (appliedCoupon?.discount || 0);
 
   // Get selected gateway
-  const selectedGateway = payment.gateways.find(g => g.id === selectedGatewayId);
+  const selectedGateway = payment.gateways.find(
+    (g) => g.id === selectedGatewayId,
+  );
 
   // Fetch addresses on mount
   useEffect(() => {
@@ -225,8 +228,8 @@ export default function CheckoutPage() {
     if (!selectedAddress) return;
 
     // Validate gateway selection for online payment
-    if (paymentMethod === 'online' && !selectedGatewayId) {
-      toast.error('Please select a payment option');
+    if (paymentMethod === "online" && !selectedGatewayId) {
+      toast.error("Please select a payment option");
       return;
     }
 
@@ -242,9 +245,12 @@ export default function CheckoutPage() {
         productId: item.productId,
         quantity: item.quantity,
         variantId: item.variantId || null,
-        variant: item.variantCombination ? { combination: item.variantCombination } : undefined,
+        variant: item.variantCombination
+          ? { combination: item.variantCombination }
+          : undefined,
       }));
 
+      // Place order first (creates it in DB with status 'placed')
       const order = await placeOrder({
         items: orderItems,
         shippingAddress: selectedAddress,
@@ -253,8 +259,83 @@ export default function CheckoutPage() {
         couponCode: appliedCoupon?.code,
       });
 
-      clearCart();
-      router.push(`/shop/account/checkout/success?orderId=${order._id}`);
+      // For COD — order is done, go to success
+      if (paymentMethod === "cod") {
+        clearCart();
+        router.push(`/shop/account/checkout/success?orderId=${order._id}`);
+        return;
+      }
+
+      // For ONLINE payment — open Razorpay
+      if (paymentMethod === "online") {
+        // Dynamically import to avoid SSR issues
+        const { initiatePayment, verifyPayment, openRazorpayCheckout } =
+          await import("@/services/payment.service");
+
+        // Load Razorpay script if not already loaded
+        if (typeof window !== "undefined" && !(window as any).Razorpay) {
+          await new Promise<void>((resolve, reject) => {
+            const script = document.createElement("script");
+            script.src = "https://checkout.razorpay.com/v1/checkout.js";
+            script.onload = () => resolve();
+            script.onerror = () =>
+              reject(new Error("Razorpay SDK load failed"));
+            document.body.appendChild(script);
+          });
+        }
+
+        // Initiate payment with our backend (gets Razorpay order id)
+        const paymentData = await initiatePayment(order._id);
+
+        // Open Razorpay checkout widget
+        openRazorpayCheckout(
+          paymentData,
+          {
+            name: user?.first_name
+              ? `${user.first_name} ${user.last_name || ""}`.trim()
+              : "",
+            email: user?.email || "",
+          },
+          async (razorpayResponse: any) => {
+            // Payment success callback — verify with our backend
+            try {
+              await verifyPayment({
+                razorpayOrderId: paymentData.razorpayOrderId,
+                razorpayPaymentId: razorpayResponse.razorpay_payment_id,
+                razorpaySignature: razorpayResponse.razorpay_signature,
+                orderId: order._id,
+              });
+              clearCart();
+              router.push(
+                `/shop/account/checkout/success?orderId=${order._id}`,
+              );
+            } catch {
+              toast.error(
+                "Payment verification failed. Please contact support with order #" +
+                  order.orderNumber,
+              );
+              setIsPlacingOrder(false);
+              router.push(`/shop/account/orders/${order._id}`);
+            }
+          },
+          (error: any) => {
+            // Payment failed/cancelled
+            if (error?.message === "Payment cancelled by user") {
+              toast.info(
+                "Payment cancelled. Your order is saved — you can pay later from My Orders.",
+              );
+            } else {
+              toast.error(
+                "Payment failed: " + (error?.description || "Please try again"),
+              );
+            }
+            setIsPlacingOrder(false);
+            router.push(`/shop/account/orders/${order._id}`);
+          },
+        );
+
+        return; // Don't stop loading spinner — Razorpay modal is open
+      }
     } catch (error: unknown) {
       const err = error as { response?: { data?: { message?: string } } };
       const message = err?.response?.data?.message || "Failed to place order";
@@ -370,112 +451,166 @@ export default function CheckoutPage() {
                 {/* COD Option — only if admin enabled */}
                 {payment.codEnabled && (
                   <button
-                    onClick={() => setPaymentMethod('cod')}
+                    onClick={() => setPaymentMethod("cod")}
                     className={`w-full flex items-center gap-4 p-4 rounded-xl border-2 transition-all text-left ${
-                      paymentMethod === 'cod' ? 'border-primary bg-primary/5' : 'border-border hover:border-border/80'
+                      paymentMethod === "cod"
+                        ? "border-primary bg-primary/5"
+                        : "border-border hover:border-border/80"
                     }`}
                   >
-                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${paymentMethod === 'cod' ? 'border-primary' : 'border-muted-foreground'}`}>
-                      {paymentMethod === 'cod' && <div className="w-2.5 h-2.5 rounded-full bg-primary" />}
+                    <div
+                      className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${paymentMethod === "cod" ? "border-primary" : "border-muted-foreground"}`}
+                    >
+                      {paymentMethod === "cod" && (
+                        <div className="w-2.5 h-2.5 rounded-full bg-primary" />
+                      )}
                     </div>
                     <div className="flex items-center gap-3 flex-1">
                       <div className="w-10 h-10 rounded-xl bg-green-500/10 flex items-center justify-center flex-shrink-0">
                         <Banknote size={20} className="text-green-600" />
                       </div>
                       <div>
-                        <p className="font-semibold text-sm">Cash on Delivery</p>
-                        <p className="text-xs text-muted-foreground">Pay when your order arrives</p>
+                        <p className="font-semibold text-sm">
+                          Cash on Delivery
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          Pay when your order arrives
+                        </p>
                       </div>
                     </div>
                   </button>
                 )}
 
                 {/* ONLINE — only if admin enabled */}
-                {payment.onlinePaymentEnabled && payment.gateways.length > 0 && (
-                  <div>
-                    <button
-                      onClick={() => setPaymentMethod('online')}
-                      className={`w-full flex items-center gap-4 p-4 rounded-xl border-2 transition-all text-left ${
-                        paymentMethod === 'online' ? 'border-primary bg-primary/5' : 'border-border hover:border-border/80'
-                      }`}
-                    >
-                      <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${paymentMethod === 'online' ? 'border-primary' : 'border-muted-foreground'}`}>
-                        {paymentMethod === 'online' && <div className="w-2.5 h-2.5 rounded-full bg-primary" />}
-                      </div>
-                      <div className="flex items-center gap-3 flex-1">
-                        <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center flex-shrink-0">
-                          <CreditCard size={20} className="text-blue-500" />
+                {payment.onlinePaymentEnabled &&
+                  payment.gateways.length > 0 && (
+                    <div>
+                      <button
+                        onClick={() => setPaymentMethod("online")}
+                        className={`w-full flex items-center gap-4 p-4 rounded-xl border-2 transition-all text-left ${
+                          paymentMethod === "online"
+                            ? "border-primary bg-primary/5"
+                            : "border-border hover:border-border/80"
+                        }`}
+                      >
+                        <div
+                          className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${paymentMethod === "online" ? "border-primary" : "border-muted-foreground"}`}
+                        >
+                          {paymentMethod === "online" && (
+                            <div className="w-2.5 h-2.5 rounded-full bg-primary" />
+                          )}
                         </div>
-                        <div>
-                          <p className="font-semibold text-sm">Pay Online</p>
-                          <p className="text-xs text-muted-foreground">Secure payment</p>
+                        <div className="flex items-center gap-3 flex-1">
+                          <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center flex-shrink-0">
+                            <CreditCard size={20} className="text-blue-500" />
+                          </div>
+                          <div>
+                            <p className="font-semibold text-sm">Pay Online</p>
+                            <p className="text-xs text-muted-foreground">
+                              Secure payment
+                            </p>
+                          </div>
                         </div>
-                      </div>
-                    </button>
+                      </button>
 
-                    {/* Gateway selector — only if multiple active gateways */}
-                    {paymentMethod === 'online' && payment.gateways.length > 1 && (
-                      <div className="mt-3 p-4 bg-muted/30 border border-border rounded-xl space-y-2">
-                        <p className="text-xs font-semibold text-muted-foreground">Select payment option:</p>
-                        <div className="space-y-2">
-                          {payment.gateways.map(gw => (
-                            <button
-                              key={gw.id}
-                              onClick={() => setSelectedGatewayId(gw.id)}
-                              className={`w-full flex items-center gap-3 p-3 rounded-xl border transition-all ${
-                                selectedGatewayId === gw.id
-                                  ? 'border-primary bg-primary/5'
-                                  : 'border-border bg-background hover:border-primary/40'
-                              }`}
-                            >
-                              <div className={`w-4 h-4 rounded-full border-2 flex-shrink-0 ${selectedGatewayId === gw.id ? 'border-primary bg-primary' : 'border-muted-foreground'}`} />
-                              <div className="text-left flex-1">
-                                <p className="font-semibold text-sm">{gw.userDisplayConfig.label || gw.displayName}</p>
-                                {gw.userDisplayConfig.description && (
-                                  <p className="text-xs text-muted-foreground">{gw.userDisplayConfig.description}</p>
-                                )}
-                                {gw.supportedMethods.length > 0 && (
-                                  <div className="flex gap-1 mt-1 flex-wrap">
-                                    {gw.supportedMethods.slice(0, 4).map(m => (
-                                      <span key={m} className="text-[10px] bg-muted px-1.5 py-0.5 rounded">{m}</span>
-                                    ))}
+                      {/* Gateway selector — only if multiple active gateways */}
+                      {paymentMethod === "online" &&
+                        payment.gateways.length > 1 && (
+                          <div className="mt-3 p-4 bg-muted/30 border border-border rounded-xl space-y-2">
+                            <p className="text-xs font-semibold text-muted-foreground">
+                              Select payment option:
+                            </p>
+                            <div className="space-y-2">
+                              {payment.gateways.map((gw) => (
+                                <button
+                                  key={gw.id}
+                                  onClick={() => setSelectedGatewayId(gw.id)}
+                                  className={`w-full flex items-center gap-3 p-3 rounded-xl border transition-all ${
+                                    selectedGatewayId === gw.id
+                                      ? "border-primary bg-primary/5"
+                                      : "border-border bg-background hover:border-primary/40"
+                                  }`}
+                                >
+                                  <div
+                                    className={`w-4 h-4 rounded-full border-2 flex-shrink-0 ${selectedGatewayId === gw.id ? "border-primary bg-primary" : "border-muted-foreground"}`}
+                                  />
+                                  <div className="text-left flex-1">
+                                    <p className="font-semibold text-sm">
+                                      {gw.userDisplayConfig.label ||
+                                        gw.displayName}
+                                    </p>
+                                    {gw.userDisplayConfig.description && (
+                                      <p className="text-xs text-muted-foreground">
+                                        {gw.userDisplayConfig.description}
+                                      </p>
+                                    )}
+                                    {gw.supportedMethods.length > 0 && (
+                                      <div className="flex gap-1 mt-1 flex-wrap">
+                                        {gw.supportedMethods
+                                          .slice(0, 4)
+                                          .map((m) => (
+                                            <span
+                                              key={m}
+                                              className="text-[10px] bg-muted px-1.5 py-0.5 rounded"
+                                            >
+                                              {m}
+                                            </span>
+                                          ))}
+                                      </div>
+                                    )}
                                   </div>
-                                )}
-                              </div>
-                              {gw.mode === 'test' && (
-                                <span className="text-[10px] text-orange-500 border border-orange-500/30 px-1.5 py-0.5 rounded">Test</span>
-                              )}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Single gateway info — no selector needed */}
-                    {paymentMethod === 'online' && payment.gateways.length === 1 && (
-                      <div className="mt-2 px-4 py-2 bg-muted/30 rounded-xl">
-                        <p className="text-xs text-muted-foreground">
-                          {payment.gateways[0].userDisplayConfig.description || 'Secure online payment'}
-                        </p>
-                        {payment.gateways[0].supportedMethods.length > 0 && (
-                          <div className="flex gap-1 mt-1 flex-wrap">
-                            {payment.gateways[0].supportedMethods.map(m => (
-                              <span key={m} className="text-[10px] bg-muted px-1.5 py-0.5 rounded">{m}</span>
-                            ))}
+                                  {gw.mode === "test" && (
+                                    <span className="text-[10px] text-orange-500 border border-orange-500/30 px-1.5 py-0.5 rounded">
+                                      Test
+                                    </span>
+                                  )}
+                                </button>
+                              ))}
+                            </div>
                           </div>
                         )}
-                      </div>
-                    )}
-                  </div>
-                )}
+
+                      {/* Single gateway info — no selector needed */}
+                      {paymentMethod === "online" &&
+                        payment.gateways.length === 1 && (
+                          <div className="mt-2 px-4 py-2 bg-muted/30 rounded-xl">
+                            <p className="text-xs text-muted-foreground">
+                              {payment.gateways[0].userDisplayConfig
+                                .description || "Secure online payment"}
+                            </p>
+                            {payment.gateways[0].supportedMethods.length >
+                              0 && (
+                              <div className="flex gap-1 mt-1 flex-wrap">
+                                {payment.gateways[0].supportedMethods.map(
+                                  (m) => (
+                                    <span
+                                      key={m}
+                                      className="text-[10px] bg-muted px-1.5 py-0.5 rounded"
+                                    >
+                                      {m}
+                                    </span>
+                                  ),
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        )}
+                    </div>
+                  )}
 
                 {/* Neither enabled — admin hasn't configured */}
-                {!payment.codEnabled && (!payment.onlinePaymentEnabled || payment.gateways.length === 0) && (
-                  <div className="p-4 bg-orange-500/10 border border-orange-500/30 rounded-xl">
-                    <p className="text-sm text-orange-600 font-semibold">Payment options not available</p>
-                    <p className="text-xs text-muted-foreground mt-1">Please contact support to complete your order.</p>
-                  </div>
-                )}
+                {!payment.codEnabled &&
+                  (!payment.onlinePaymentEnabled ||
+                    payment.gateways.length === 0) && (
+                    <div className="p-4 bg-orange-500/10 border border-orange-500/30 rounded-xl">
+                      <p className="text-sm text-orange-600 font-semibold">
+                        Payment options not available
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Please contact support to complete your order.
+                      </p>
+                    </div>
+                  )}
               </div>
 
               {/* CARD DETAILS FORM — only shown when online selected */}
@@ -738,7 +873,7 @@ export default function CheckoutPage() {
                     <span className="text-sm font-semibold">
                       {paymentMethod === "cod"
                         ? "Cash on Delivery"
-                        : `Online Payment - ${selectedGateway?.displayName || 'Payment Gateway'}`}
+                        : `Online Payment - ${selectedGateway?.displayName || "Payment Gateway"}`}
                     </span>
                   </div>
                   <Button
@@ -766,19 +901,23 @@ export default function CheckoutPage() {
                         src={resolveImageUrl(item.image || "/file.svg")}
                         alt={item.name}
                         className="object-contain w-full h-full"
-onError={(e) => {
-                          (e.target as HTMLImageElement).src = AppConfig.DEFULT_IMAGE;
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src =
+                            AppConfig.DEFULT_IMAGE;
                         }}
                       />
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm line-clamp-1">{item.name}</p>
                       {/* Show variant info in review */}
-                      {item.variantCombination && item.variantCombination.length > 0 && (
-                        <p className="text-xs text-muted-foreground">
-                          {item.variantCombination.map(c => `${c.name}: ${c.value}`).join(', ')}
-                        </p>
-                      )}
+                      {item.variantCombination &&
+                        item.variantCombination.length > 0 && (
+                          <p className="text-xs text-muted-foreground">
+                            {item.variantCombination
+                              .map((c) => `${c.name}: ${c.value}`)
+                              .join(", ")}
+                          </p>
+                        )}
                     </div>
                     <span className="text-xs text-muted-foreground">
                       ×{item.quantity}

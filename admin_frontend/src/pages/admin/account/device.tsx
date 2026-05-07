@@ -21,7 +21,7 @@ type DeviceItem = {
 /* ------------------ Device List ------------------ */
 
 export default function DeviceList() {
-  const [rows, setRows] = useState<DeviceItem[]>([]);
+  const [rows] = useState<DeviceItem[]>([]);
   const isFetchingRef = useRef(false);
 
   /* ------------------ Fetch Devices ------------------ */
@@ -30,20 +30,20 @@ export default function DeviceList() {
     if (isFetchingRef.current) return;
 
     isFetchingRef.current = true;
-    try {
-      const res = await authService.deviceList({
-        draw: 1,
-        start: 0,
-        length: 1000,
-        search: { value: "" },
-      });
+    // try {
+    //   const res = await authService.deviceList({
+    //     draw: 1,
+    //     start: 0,
+    //     length: 1000,
+    //     search: { value: "" },
+    //   });
 
-      setRows(res.data || []);
-    } catch {
-      toast.error("Failed to fetch devices");
-    } finally {
-      isFetchingRef.current = false;
-    }
+    //   setRows(res.data || []);
+    // } catch {
+    //   toast.error("Failed to fetch devices");
+    // } finally {
+    //   isFetchingRef.current = false;
+    // }
   }, []);
 
   useEffect(() => {

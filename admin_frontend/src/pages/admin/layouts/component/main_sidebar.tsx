@@ -24,7 +24,6 @@ import {
   Navigation,
   ToggleLeft,
   Warehouse,
-  Upload,
 } from "lucide-react";
 import { NavGroup, type NavGroupProps } from "./nav-group";
 import { NavUser } from "./nav-user";

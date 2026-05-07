@@ -6,8 +6,6 @@ import { Ajax } from "@/helper/ajax";
 function resolveLogo(logo?: string) {
   if (!logo) return AppConfig.DEFULT_IMAGE;
   if (logo.startsWith("http")) return logo;
-
-  // Use ADMIN_API_URL for images (5001), not API_URL (5000)
   return `${AppConfig.ADMIN_API_URL.replace(/\/$/, "")}/${logo.replace(/^\/+/, "")}`;
 }
 
@@ -26,6 +24,34 @@ export interface PaymentGatewayPublic {
   keyId: string;
 }
 
+export interface AppTheme {
+  primaryColor: string;
+  secondaryColor: string;
+  font: string;
+  darkMode: boolean;
+}
+
+export interface AppFeatures {
+  sub_categories: boolean;
+  product_variants: boolean;
+  bulk_stock: boolean;
+  guest_checkout: boolean;
+  wallet: boolean;
+  coupon_system: boolean;
+  sms_notifications: boolean;
+  review_system: boolean;
+  wishlist: boolean;
+  compare_products: boolean;
+  live_chat: boolean;
+  invoice_download: boolean;
+}
+
+export interface AppStore {
+  type: string;
+  currency: string;
+  currencySymbol: string;
+}
+
 export interface AppSettings {
   appName: string;
   logoUrl: string;
@@ -41,7 +67,38 @@ export interface AppSettings {
   };
   googleRecaptchaEnabled: boolean;
   googleRecaptchaPublicKey: string;
+  theme: AppTheme;
+  features: AppFeatures;
+  store: AppStore;
 }
+
+const DEFAULT_THEME: AppTheme = {
+  primaryColor: "#6366f1",
+  secondaryColor: "#f59e0b",
+  font: "Inter",
+  darkMode: false,
+};
+
+const DEFAULT_FEATURES: AppFeatures = {
+  sub_categories: true,
+  product_variants: true,
+  bulk_stock: true,
+  guest_checkout: false,
+  wallet: false,
+  coupon_system: true,
+  sms_notifications: false,
+  review_system: true,
+  wishlist: true,
+  compare_products: false,
+  live_chat: false,
+  invoice_download: true,
+};
+
+const DEFAULT_STORE: AppStore = {
+  type: "general",
+  currency: "INR",
+  currencySymbol: "₹",
+};
 
 const DEFAULT_PAYMENT = {
   gateways: [],
@@ -60,6 +117,9 @@ const DEFAULT_SETTINGS: AppSettings = {
   payment: DEFAULT_PAYMENT,
   googleRecaptchaEnabled: false,
   googleRecaptchaPublicKey: "",
+  theme: DEFAULT_THEME,
+  features: DEFAULT_FEATURES,
+  store: DEFAULT_STORE,
 };
 
 export function useAppSettings() {
@@ -72,72 +132,66 @@ export function useAppSettings() {
         const res = await Ajax.get("/settings/public");
         if (res?.status === 1 && res.data) {
           const s = res.data;
-          const name = s.appName || AppConfig.APP_NAME;
-          const logo = resolveLogo(s.logoUrl);
-          const announcementValue = s.announcement || null;
 
           const newSettings: AppSettings = {
-            appName: name,
-            logoUrl: logo,
+            appName: s.appName || AppConfig.APP_NAME,
+            logoUrl: resolveLogo(s.logoUrl),
             faviconUrl: s.faviconUrl ?? "",
             cookieConsentEnabled: s.cookieConsentEnabled ?? true,
-            announcement: announcementValue,
+            announcement: s.announcement || null,
             payment: s.payment || DEFAULT_PAYMENT,
             googleRecaptchaEnabled: s.googleRecaptchaEnabled ?? false,
             googleRecaptchaPublicKey: s.googleRecaptchaPublicKey ?? "",
+            // ── NEW: theme from admin ──
+            theme: s.theme
+              ? {
+                primaryColor: s.theme.primaryColor || DEFAULT_THEME.primaryColor,
+                secondaryColor: s.theme.secondaryColor || DEFAULT_THEME.secondaryColor,
+                font: s.theme.font || DEFAULT_THEME.font,
+                darkMode: s.theme.darkMode ?? DEFAULT_THEME.darkMode,
+              }
+              : DEFAULT_THEME,
+            // ── NEW: feature toggles from admin ──
+            features: s.features
+              ? { ...DEFAULT_FEATURES, ...s.features }
+              : DEFAULT_FEATURES,
+            // ── NEW: store config from admin ──
+            store: s.store
+              ? {
+                type: s.store.type || DEFAULT_STORE.type,
+                currency: s.store.currency || DEFAULT_STORE.currency,
+                currencySymbol: s.store.currencySymbol || DEFAULT_STORE.currencySymbol,
+              }
+              : DEFAULT_STORE,
           };
 
-          // Check if settings have changed
-          const cachedSettings = localStorage.getItem("settings");
+          const cachedSettings = localStorage.getItem("app_settings");
           let hasChanged = true;
           if (cachedSettings) {
             try {
               const cached = JSON.parse(cachedSettings);
               hasChanged = JSON.stringify(cached) !== JSON.stringify(newSettings);
-            } catch {
-              // If parsing fails, assume changed
-            }
+            } catch { }
           }
 
           if (hasChanged) {
             setSettings(newSettings);
-            localStorage.setItem("settings", JSON.stringify(newSettings));
-          } else {
-            // Use cached settings if no change
-            if (cachedSettings) {
-              const cached = JSON.parse(cachedSettings);
-              setSettings({
-                ...DEFAULT_SETTINGS,
-                ...cached,
-                faviconUrl: cached.faviconUrl ?? "",
-                cookieConsentEnabled: cached.cookieConsentEnabled ?? true,
-                googleRecaptchaEnabled: cached.googleRecaptchaEnabled ?? false,
-                googleRecaptchaPublicKey: cached.googleRecaptchaPublicKey ?? "",
-                payment: cached.payment || DEFAULT_PAYMENT,
-              });
-            }
+            localStorage.setItem("app_settings", JSON.stringify(newSettings));
+          } else if (cachedSettings) {
+            try {
+              setSettings({ ...DEFAULT_SETTINGS, ...JSON.parse(cachedSettings) });
+            } catch { }
           }
         }
       } catch {
-        // On error, fall back to defaults or cached
-        const cachedSettings = localStorage.getItem("settings");
+        // Fallback to cache
+        const cachedSettings = localStorage.getItem("app_settings");
         if (cachedSettings) {
           try {
-            const cached = JSON.parse(cachedSettings);
-            setSettings({
-              ...DEFAULT_SETTINGS,
-              ...cached,
-              faviconUrl: cached.faviconUrl ?? "",
-              cookieConsentEnabled: cached.cookieConsentEnabled ?? true,
-              googleRecaptchaEnabled: cached.googleRecaptchaEnabled ?? false,
-              googleRecaptchaPublicKey: cached.googleRecaptchaPublicKey ?? "",
-              payment: cached.payment || DEFAULT_PAYMENT,
-            });
+            setSettings({ ...DEFAULT_SETTINGS, ...JSON.parse(cachedSettings) });
           } catch {
             setSettings(DEFAULT_SETTINGS);
           }
-        } else {
-          setSettings(DEFAULT_SETTINGS);
         }
       } finally {
         setIsLoading(false);
@@ -156,6 +210,9 @@ export function useAppSettings() {
     payment: settings.payment,
     googleRecaptchaEnabled: settings.googleRecaptchaEnabled,
     googleRecaptchaPublicKey: settings.googleRecaptchaPublicKey,
+    theme: settings.theme,
+    features: settings.features,
+    store: settings.store,
     isLoading,
   };
 }
