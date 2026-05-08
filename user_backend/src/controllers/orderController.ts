@@ -54,14 +54,14 @@ export const placeOrder = asyncHandler(async (req: any, res: any) => {
         // Handle variant if provided
         if (item.variantId) {
             const variant = product.variants?.id ? product.variants.id(item.variantId) : product.variants?.find((v: any) => v._id?.toString() === item.variantId)
-            
+
             if (!variant) {
                 return res.status(400).json({
                     success: false,
                     message: `Variant not found for ${product.name}`,
                 })
             }
-            
+
             if (!variant.isActive) {
                 return res.status(400).json({
                     success: false,
@@ -105,26 +105,32 @@ export const placeOrder = asyncHandler(async (req: any, res: any) => {
         })
     }
 
-    // Shipping charge
-    const shippingCharge = subtotal >= 999 ? 0 : 99
+    // Shipping charge — read from admin settings (fallback to defaults)
+    const { getSettingValue } = await import('../utils/settingsHelper');
+    const freeAbove = parseFloat(await getSettingValue('shipping.free_above', '999'));
+    const shippingRate = parseFloat(await getSettingValue('shipping.charge', '99'));
+    const shippingCharge = subtotal >= freeAbove ? 0 : shippingRate;
 
     // Coupon validation
     let discount = 0
     let couponData: { code: string; discount: number } | undefined
 
     if (couponCode && typeof couponCode === 'string' && couponCode.trim()) {
+        const now = new Date();
         const coupon = await Coupon.findOne({
             code: couponCode.trim().toUpperCase(),
             isActive: true,
-            expiresAt: { $gt: new Date() },
+            validFrom: { $lte: now },
+            validUntil: { $gt: now },
         })
 
-        if (coupon && coupon.usedCount < coupon.usageLimit && subtotal >= coupon.minOrderAmount) {
-            if (coupon.type === 'percent') {
-                const raw = (coupon.value / 100) * subtotal
+        const usageLimitOk = coupon && (coupon.usageLimit === null || coupon.usedCount < coupon.usageLimit);
+        if (coupon && usageLimitOk && subtotal >= coupon.minOrderAmount) {
+            if (coupon.discountType === 'percentage') {
+                const raw = (coupon.discountValue / 100) * subtotal
                 discount = coupon.maxDiscount ? Math.min(raw, coupon.maxDiscount) : raw
             } else {
-                discount = coupon.value
+                discount = coupon.discountValue
             }
             discount = Math.round(discount)
             couponData = { code: coupon.code, discount }
@@ -306,55 +312,9 @@ export const cancelOrder = asyncHandler(async (req: any, res: any) => {
     })
 })
 
-// FUNCTION 5: validateCoupon - POST /coupons/validate
-export const validateCoupon = asyncHandler(async (req: Request, res: Response) => {
-    const { code, cartTotal } = req.body
-
-    if (!code) {
-        return res.status(400).json({ success: false, message: 'Coupon code is required' })
-    }
-
-    const coupon = await Coupon.findOne({ code: code.toUpperCase().trim() })
-
-    if (!coupon) {
-        return res.json({ success: true, data: { valid: false, discount: 0, message: 'Invalid coupon code' } })
-    }
-
-    if (!coupon.isActive) {
-        return res.json({ success: true, data: { valid: false, discount: 0, message: 'This coupon is no longer active' } })
-    }
-
-    if (coupon.expiresAt < new Date()) {
-        return res.json({ success: true, data: { valid: false, discount: 0, message: 'This coupon has expired' } })
-    }
-
-    if (coupon.usedCount >= coupon.usageLimit) {
-        return res.json({ success: true, data: { valid: false, discount: 0, message: 'Coupon usage limit reached' } })
-    }
-
-    if (cartTotal < coupon.minOrderAmount) {
-        return res.json({
-            success: true,
-            data: { valid: false, discount: 0, message: `Minimum order ₹${coupon.minOrderAmount} required for this coupon` }
-        })
-    }
-
-    let discount = 0
-    if (coupon.type === 'percent') {
-        discount = (coupon.value / 100) * cartTotal
-        if (coupon.maxDiscount) {
-            discount = Math.min(discount, coupon.maxDiscount)
-        }
-    } else {
-        discount = coupon.value
-    }
-    discount = Math.round(discount)
-
-    return res.json({
-        success: true,
-        data: { valid: true, discount, message: `Coupon applied! You save ₹${discount}` }
-    })
-})
+// FUNCTION 5: validateCoupon — removed from here, lives in couponController.ts
+// Keeping this stub so routes don't break if imported from here
+export { validateCoupon } from './couponController';
 
 // FUNCTION 6: validateCart - POST /cart/validate (Public - no auth required)
 export const validateCart = asyncHandler(async (req: any, res: any) => {
@@ -391,7 +351,7 @@ export const validateCart = asyncHandler(async (req: any, res: any) => {
         // Handle variant if provided
         if (item.variantId) {
             const variant = product.variants?.id ? product.variants.id(item.variantId) : product.variants?.find((v: any) => v._id?.toString() === item.variantId)
-            
+
             if (!variant || !variant.isActive) {
                 issues.push({ productId: item.productId, issue: 'Variant is no longer available' })
                 continue

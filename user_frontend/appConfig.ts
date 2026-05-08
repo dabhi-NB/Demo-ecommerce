@@ -1,10 +1,10 @@
-const baseUrl = "http://127.0.0.1:3000/";
-const apiUrl = "http://127.0.0.1:5000/";
-const adminapiUrl = "http://127.0.0.1:5001/";
+const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://127.0.0.1:3000/";
+const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:5000/";
+const adminapiUrl = process.env.NEXT_PUBLIC_ADMIN_API_URL || "http://127.0.0.1:5001/";
 const AppConfig = {
   APP_NAME: process.env.NEXT_PUBLIC_APP_NAME || "Next",
-  BASE_URL: process.env.NEXT_PUBLIC_BASE_URL || baseUrl,
-  API_URL: process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:5000/",
+  BASE_URL: baseUrl,
+  API_URL: apiUrl,
   ADMIN_API_URL: adminapiUrl,
 
   API_KEY: process.env.NEXT_PUBLIC_API_KEY || "my-api-key",

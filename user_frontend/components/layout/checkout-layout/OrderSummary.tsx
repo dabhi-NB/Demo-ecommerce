@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import type { CartItem } from "@/context/CartContext";
+import { useStore } from "@/hooks/useStore";
 
 interface OrderSummaryProps {
   items: CartItem[];
@@ -30,6 +31,7 @@ export function OrderSummary({
   showCouponInput = true,
 }: OrderSummaryProps) {
   const [couponInput, setCouponInput] = useState("");
+  const { formatPrice } = useStore();
 
   // Calculations
   const subtotal = items.reduce(
@@ -85,7 +87,7 @@ export function OrderSummary({
                       ×{item.quantity}
                     </p>
                     <p className="text-sm font-medium">
-                      ₹{(item.price * item.quantity).toLocaleString("en-IN")}
+                      {formatPrice(item.price * item.quantity)}
                     </p>
                   </div>
                 ))}
@@ -100,13 +102,13 @@ export function OrderSummary({
                 >
                   <div className="w-11 h-11 rounded-xl bg-muted/50 relative flex-shrink-0">
                     <img
-src={resolveImageUrl(item.image)}
+                      src={resolveImageUrl(item.image)}
                       alt={item.name}
                       className="object-contain w-full h-full"
                       onError={(e) => {
-                        (e.target as HTMLImageElement).src = AppConfig.DEFULT_IMAGE;
+                        (e.target as HTMLImageElement).src =
+                          AppConfig.DEFULT_IMAGE;
                       }}
-                      
                     />
                   </div>
                   <p className="text-sm line-clamp-1 flex-1">{item.name}</p>
@@ -114,7 +116,7 @@ src={resolveImageUrl(item.image)}
                     ×{item.quantity}
                   </p>
                   <p className="text-sm font-medium">
-                    ₹{(item.price * item.quantity).toLocaleString("en-IN")}
+                    {formatPrice(item.price * item.quantity)}
                   </p>
                 </div>
               ))}
@@ -178,22 +180,20 @@ src={resolveImageUrl(item.image)}
           <div className="space-y-2 mt-3">
             <div className="flex justify-between text-sm">
               <span>Subtotal</span>
-              <span>₹{subtotal.toLocaleString("en-IN")}</span>
+              <span>{formatPrice(subtotal)}</span>
             </div>
             <div className="flex justify-between text-sm">
               <span>Shipping</span>
               {shipping === 0 ? (
                 <span className="text-green-500 font-medium">FREE</span>
               ) : (
-                <span>₹{shipping.toLocaleString("en-IN")}</span>
+                <span>{formatPrice(shipping)}</span>
               )}
             </div>
             {discount > 0 && (
               <div className="flex justify-between text-sm">
                 <span>Coupon Discount</span>
-                <span className="text-green-500">
-                  -₹{discount.toLocaleString("en-IN")}
-                </span>
+                <span className="text-green-500">-{formatPrice(discount)}</span>
               </div>
             )}
           </div>
@@ -201,7 +201,7 @@ src={resolveImageUrl(item.image)}
           <Separator className="mt-2" />
           <div className="flex justify-between font-bold text-base mt-2">
             <span>Total</span>
-            <span>₹{total.toLocaleString("en-IN")}</span>
+            <span>{formatPrice(total)}</span>
           </div>
 
           {/* Footer note */}

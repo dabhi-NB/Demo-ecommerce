@@ -1,32 +1,52 @@
-import mongoose, { Document, Schema } from "mongoose";
+import mongoose, { Document, Schema } from 'mongoose';
+
+export type DiscountType = 'percentage' | 'fixed';
 
 export interface ICoupon extends Document {
-    code: string
-    type: 'percent' | 'flat'
-    value: number
-    minOrderAmount: number
-    maxDiscount?: number
-    expiresAt: Date
-    usageLimit: number
-    usedCount: number
-    isActive: boolean
-    createdAt: Date
-    updatedAt: Date
+    code: string;
+    description: string;
+    discountType: DiscountType;
+    discountValue: number;
+    minOrderAmount: number;
+    maxDiscount: number | null;
+    usageLimit: number | null;
+    usedCount: number;
+    validFrom: Date;
+    validUntil: Date;
+    isActive: boolean;
+    createdAt?: Date;
+    updatedAt?: Date;
 }
 
-const couponSchema = new mongoose.Schema({
-    code: { type: String, required: true, unique: true, uppercase: true, trim: true },
-    type: { type: String, enum: ['percent', 'flat'], required: true },
-    value: { type: Number, required: true, min: 0 },
-    minOrderAmount: { type: Number, default: 0 },
-    maxDiscount: { type: Number, default: null },
-    expiresAt: { type: Date, required: true },
-    usageLimit: { type: Number, default: 100 },
-    usedCount: { type: Number, default: 0 },
-    isActive: { type: Boolean, default: true },
-}, { timestamps: true })
+const CouponSchema = new Schema<ICoupon>(
+    {
+        code: {
+            type: String,
+            required: true,
+            unique: true,
+            uppercase: true,
+            index: true,
+            trim: true,
+        },
+        description: { type: String, default: '' },
+        discountType: {
+            type: String,
+            enum: ['percentage', 'fixed'],
+            default: 'percentage',
+        },
+        discountValue: { type: Number, required: true, min: 0 },
+        minOrderAmount: { type: Number, default: 0 },
+        maxDiscount: { type: Number, default: null },
+        usageLimit: { type: Number, default: null },
+        usedCount: { type: Number, default: 0 },
+        validFrom: { type: Date, required: true },
+        validUntil: { type: Date, required: true },
+        isActive: { type: Boolean, default: true },
+    },
+    { collection: 'coupons', timestamps: true }
+);
 
-couponSchema.index({ isActive: 1, expiresAt: 1 })
- 
-const Coupon = mongoose.model('Coupon', couponSchema, 'coupons')
-export default Coupon
+CouponSchema.index({ isActive: 1, validUntil: 1 });
+
+export default mongoose.models.Coupon ||
+    mongoose.model<ICoupon>('Coupon', CouponSchema);

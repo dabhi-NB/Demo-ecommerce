@@ -36,6 +36,8 @@ import {
 } from "lucide-react";
 import AppConfig from "@/appConfig";
 import General from "@/lib/general";
+import { useAppSettings } from "@/hooks/useAppSettings";
+import { useStore } from "@/hooks/useStore";
 
 // Greeting based on time of day
 const getGreeting = () => {
@@ -50,6 +52,8 @@ export default function DashboardPage() {
   const { items: cartItems, totalItems, totalPrice } = useCart();
   const { wishlist } = useWishlist();
   const router = useRouter();
+  const { appName } = useAppSettings();
+  const { formatPrice } = useStore();
 
   // Redirect if not authenticated
   useEffect(() => {
@@ -129,7 +133,7 @@ export default function DashboardPage() {
               {user?.first_name} {user?.last_name} 👋
             </h1>
             <p className="text-xs text-muted-foreground mt-0.5">
-              Welcome back to RV Mobile Solutions
+              Welcome back to {appName}
             </p>
           </div>
           <Link href="/shop/products">
@@ -238,7 +242,7 @@ export default function DashboardPage() {
                   </p>
                   <div className="flex items-center justify-between mt-3 pt-3 border-t border-border">
                     <span className="font-black text-sm">
-                      ₹{order.totalAmount.toLocaleString("en-IN")}
+                      {formatPrice(order.totalAmount)}
                     </span>
                     <span className="text-xs text-primary font-bold flex items-center gap-0.5">
                       Track <ArrowRight size={11} />

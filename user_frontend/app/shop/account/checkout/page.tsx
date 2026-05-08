@@ -17,6 +17,7 @@ import {
 import { useAuth } from "@/context/AuthContext";
 import { useCart, CartItem } from "@/context/CartContext";
 import { useAppSettings } from "@/hooks/useAppSettings";
+import { useStore } from "@/hooks/useStore";
 import {
   getAddresses,
   addAddress,
@@ -38,6 +39,7 @@ export default function CheckoutPage() {
   const { isAuthenticated, user } = useAuth();
   const { items, totalPrice, clearCart } = useCart();
   const { payment } = useAppSettings();
+  const { formatPrice } = useStore();
 
   // Redirect if not authenticated or cart is empty
   useEffect(() => {
@@ -923,7 +925,7 @@ export default function CheckoutPage() {
                       ×{item.quantity}
                     </span>
                     <span className="text-sm font-medium">
-                      ₹{(item.price * item.quantity).toLocaleString("en-IN")}
+                      {formatPrice(item.price * item.quantity)}
                     </span>
                   </div>
                 ))}
@@ -950,7 +952,7 @@ export default function CheckoutPage() {
                 ) : (
                   <>
                     <ShieldCheck className="mr-2 h-4 w-4" />
-                    Place Order — ₹{total.toLocaleString("en-IN")}
+                    Place Order — {formatPrice(total)}
                   </>
                 )}
               </Button>

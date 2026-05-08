@@ -33,33 +33,27 @@ import {
 } from "lucide-react";
 
 export default function HomePage() {
-  console.log("[HOME] 🔄 HomePage render START");
   const { isAuthenticated, loading: authLoading } = useAuth();
 
   const router = useRouter();
-  console.log("[HOME] 📊 HomePage auth state:", {
     isAuthenticated,
     authLoading,
   });
 
   // Redirect authenticated users to dashboard
   useEffect(() => {
-    console.log("[HOME] 🔄 useEffect redirect check", {
       isAuthenticated,
       authLoading,
     });
     if (isAuthenticated && !authLoading) {
-      console.log("[HOME] ➡️ Redirecting to /dashboard");
       router.replace("/dashboard");
     }
   }, [isAuthenticated, authLoading, router]);
 
-  console.log("[HOME] 🚫 Showing full skeleton because authLoading=true");
   // Show full page skeleton while auth is loading
   if (authLoading) {
     return <HomePageFullSkeleton />;
   }
-  console.log("[HOME] ✅ Showing HomePageContent");
 
   return <HomePageContent />;
 }

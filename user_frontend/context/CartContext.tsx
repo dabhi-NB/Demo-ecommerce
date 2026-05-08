@@ -81,17 +81,14 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   };
 
   useEffect(() => {
-    console.log("[CART] 🔄 useEffect auth change", {
       isAuthenticated,
       hasUser: !!user,
       userId: user?.user_id,
     });
     if (isAuthenticated && user) {
       syncedRef.current = false;
-      console.log("[CART] 🚀 Calling initCart()");
       initCart();
     } else {
-      console.log("[CART] 📦 Loading local cart");
       const local = loadLocal();
       setItems(local);
       syncedRef.current = false;
@@ -99,24 +96,18 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   }, [isAuthenticated, user?.user_id]);
 
   const initCart = async () => {
-    console.log("[CART] 🔄 initCart START");
     setIsLoading(true);
     try {
       const localItems = loadLocal();
-      console.log("[CART] 📦 Local items found:", localItems.length);
 
       if (localItems.length > 0 && !syncedRef.current) {
-        console.log("[CART] 🔄 Syncing local to DB...");
         syncedRef.current = true;
         const synced = await syncCartToDB(localItems);
-        console.log("[CART] ✅ DB sync complete:", synced.items.length);
         setItems(synced.items);
         saveLocal(synced.items);
         localStorage.removeItem(LOCAL_CART_KEY);
       } else {
-        console.log("[CART] 🔄 Loading from DB...");
         const dbCart = await getCartFromDB();
-        console.log("[CART] ✅ DB cart loaded:", dbCart.items.length);
         setItems(dbCart.items);
         saveLocal(dbCart.items);
       }
@@ -125,7 +116,6 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       const local = loadLocal();
       setItems(local);
     } finally {
-      console.log("[CART] ✅ initCart COMPLETE, isLoading=false");
       setIsLoading(false);
     }
   };

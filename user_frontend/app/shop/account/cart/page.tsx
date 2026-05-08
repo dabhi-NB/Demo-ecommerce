@@ -22,11 +22,13 @@ import {
   AlertDialogCancel,
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
-import AppConfig from "@/appConfig"; 
+import AppConfig from "@/appConfig";
 import { resolveImageUrl } from "@/lib/utils";
+import { useStore } from "@/hooks/useStore";
 
 export default function CartPage() {
   const router = useRouter();
+  const { formatPrice } = useStore();
   const {
     items,
     totalItems,
@@ -198,8 +200,7 @@ export default function CartPage() {
             {totalPrice < 999 ? (
               <div className="bg-muted/50 rounded-xl p-3 text-center">
                 <p className="text-xs text-muted-foreground">
-                  Add ₹{(999 - totalPrice).toLocaleString("en-IN")} more for
-                  free delivery
+                  Add {formatPrice(999 - totalPrice)} more for free delivery
                 </p>
                 <div className="bg-muted rounded-full h-1.5 mt-2">
                   <div
@@ -236,6 +237,7 @@ interface CartItemCardProps {
 }
 
 function CartItemCard({ item, onUpdateQuantity, onRemove }: CartItemCardProps) {
+  const { formatPrice } = useStore();
   const [showConfirm, setShowConfirm] = useState(false);
 
   const handleDecrement = () => {
@@ -259,14 +261,14 @@ function CartItemCard({ item, onUpdateQuantity, onRemove }: CartItemCardProps) {
         href={`/shop/products/${item.slug}`}
         className="w-20 h-20 md:w-24 md:h-24 rounded-xl bg-muted/50 relative flex-shrink-0"
       >
-          <img
-src={resolveImageUrl(item.image)}
-            alt={item.name}
-            className="object-contain w-full h-full"
-            onError={(e) => {
-              (e.target as HTMLImageElement).src = AppConfig.DEFULT_IMAGE;
-            }}
-          />
+        <img
+          src={resolveImageUrl(item.image)}
+          alt={item.name}
+          className="object-contain w-full h-full"
+          onError={(e) => {
+            (e.target as HTMLImageElement).src = AppConfig.DEFULT_IMAGE;
+          }}
+        />
       </Link>
 
       {/* Content */}
@@ -276,18 +278,22 @@ src={resolveImageUrl(item.image)}
             {item.name}
           </p>
         </Link>
-        
+
         {/* Variant Combination Display */}
         {item.variantCombination && item.variantCombination.length > 0 && (
           <div className="flex gap-1 flex-wrap mt-0.5">
             {item.variantCombination.map((c: any, i: number) => (
-              <span key={i} className="text-[10px] bg-muted px-2 py-0.5 rounded-full text-muted-foreground">
-                {c.name}: <span className="font-semibold text-foreground">{c.value}</span>
+              <span
+                key={i}
+                className="text-[10px] bg-muted px-2 py-0.5 rounded-full text-muted-foreground"
+              >
+                {c.name}:{" "}
+                <span className="font-semibold text-foreground">{c.value}</span>
               </span>
             ))}
           </div>
         )}
-        
+
         {item.variant?.color && !item.variantCombination && (
           <p className="text-xs text-muted-foreground mt-0.5">
             Color: {item.variant.color}
@@ -296,9 +302,7 @@ src={resolveImageUrl(item.image)}
 
         {/* Price row */}
         <div className="flex items-center gap-2 mt-2">
-          <span className="font-bold">
-            ₹{item.price.toLocaleString("en-IN")}
-          </span>
+          <span className="font-bold">{formatPrice(item.price)}</span>
           <span className="text-xs text-muted-foreground">per item</span>
         </div>
       </div>
@@ -307,7 +311,7 @@ src={resolveImageUrl(item.image)}
       <div className="flex flex-col items-end justify-between">
         {/* Item total */}
         <p className="font-bold text-base text-primary">
-          ₹{(item.price * item.quantity).toLocaleString("en-IN")}
+          {formatPrice(item.price * item.quantity)}
         </p>
 
         {/* Quantity control */}

@@ -36,6 +36,28 @@ export async function getAllSettings(): Promise<any> {
       }
     });
 
+    // Fetch active payment gateways — NEVER expose keySecret or webhookSecret
+    let gateways: any[] = [];
+    try {
+      const gatewaySetting = await Setting.findOne({ key: 'payment_gateways' }).lean() as any;
+      if (gatewaySetting?.value) {
+        const allGateways = JSON.parse(gatewaySetting.value);
+        gateways = allGateways
+          .filter((gw: any) => gw.isActive)
+          .map((gw: any) => ({
+            id: gw.id,
+            type: gw.type,
+            displayName: gw.displayName,
+            isDefault: gw.isDefault,
+            supportedMethods: gw.supportedMethods,
+            userDisplayConfig: gw.userDisplayConfig,
+            mode: gw.mode,
+            keyId: gw.credentials?.keyId || '',
+            // NEVER include keySecret or webhookSecret
+          }));
+      }
+    } catch { }
+
     // Remap for frontend compatibility (Next.js expects flat keys)
     const publicSettings = {
       appName: data["setting.app_name"] || "RV Mobile",
@@ -44,11 +66,11 @@ export async function getAllSettings(): Promise<any> {
       announcement: data["setting.announcement"] || null,
       cookieConsentEnabled: data["setting.cookie_consent_enabled"] === "1" || true,
       payment: {
-        gateways: [],
-        codEnabled: data["setting.cod_enabled"] === "1" || true,
-        onlinePaymentEnabled: data["setting.online_payment_enabled"] === "1" || false,
-        currency: data["setting.currency"] || "INR",
-        orderAmountMin: parseFloat(data["setting.order_amount_min"] || "0"),
+        gateways,
+        codEnabled: data['payment.cod_enabled'] === 'true' || data['setting.cod_enabled'] === '1' || true,
+        onlinePaymentEnabled: data['payment.online_payment_enabled'] === 'true' || data['setting.online_payment_enabled'] === '1' || false,
+        currency: data['payment.payment_currency'] || data['setting.currency'] || 'INR',
+        orderAmountMin: parseFloat(data['payment.order_min'] || data['setting.order_amount_min'] || '0'),
       },
       googleRecaptchaEnabled: data["setting.google_recaptcha_enabled"] === "1" || false,
       googleRecaptchaPublicKey: data["setting.google_recaptcha_public_key"] || "",
@@ -111,11 +133,11 @@ export async function updateSetting(
  */
 export async function invalidateSettingsCache(): Promise<void> {
   try {
-    const cacheKey = "setting:all:public";
-    // Redis delete would go here if implemented
-    // For now, relying on cache TTL
+    const { setCache } = await import('./cache');
+    // Set cache to empty with 1 second TTL — forces next request to re-fetch from DB
+    await setCache('setting:all:public', '', 1);
   } catch (error) {
-    console.error("Error invalidating cache:", error);
+    console.error('Error invalidating settings cache:', error);
   }
 }
 

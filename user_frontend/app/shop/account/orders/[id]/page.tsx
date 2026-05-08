@@ -28,10 +28,12 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
+import { useStore } from "@/hooks/useStore";
 
 export default function OrderDetailPage() {
   const params = useParams();
   const orderId = params.id as string;
+  const { formatPrice } = useStore();
 
   const [order, setOrder] = useState<IOrder | null>(null);
   const [loading, setLoading] = useState(true);
@@ -209,8 +211,10 @@ export default function OrderDetailPage() {
                   key={index}
                   className="flex items-center gap-4 py-3 border-b border-border last:border-0"
                 >
-
-<Link href={`/shop/products/${item.product?.slug || ''}`} className="flex-shrink-0">
+                  <Link
+                    href={`/shop/products/${item.product?.slug || ""}`}
+                    className="flex-shrink-0"
+                  >
                     <div className="w-[72px] h-[72px] rounded-xl bg-muted/50 overflow-hidden relative">
                       <Image
                         src={resolveImageUrl(item.image)}
@@ -226,7 +230,7 @@ export default function OrderDetailPage() {
                     </div>
                   </Link>
                   <div className="flex-1 min-w-0">
-                    <Link href={`/shop/products/${item.product?.slug || ''}`}>
+                    <Link href={`/shop/products/${item.product?.slug || ""}`}>
                       <p className="font-medium text-sm leading-snug hover:text-primary">
                         {item.name}
                       </p>
@@ -251,13 +255,12 @@ export default function OrderDetailPage() {
                       )}
 
                     <p className="text-xs text-muted-foreground mt-0.5">
-                      Qty: {item.quantity} × ₹
-                      {item.price?.toLocaleString("en-IN")}
+                      Qty: {item.quantity} × {formatPrice(item.price)}
                     </p>
                   </div>
                   <div className="text-right">
                     <p className="font-bold">
-                      ₹{(item.price * item.quantity).toLocaleString("en-IN")}
+                      {formatPrice(item.price * item.quantity)}
                     </p>
                   </div>
                 </div>
@@ -329,7 +332,7 @@ export default function OrderDetailPage() {
             <div className="space-y-2 text-sm">
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Subtotal</span>
-                <span>₹{order.subtotal.toLocaleString("en-IN")}</span>
+                <span>{formatPrice(order.subtotal)}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Delivery</span>
@@ -340,19 +343,19 @@ export default function OrderDetailPage() {
                 >
                   {order.shippingCharge === 0
                     ? "FREE"
-                    : `₹${order.shippingCharge.toLocaleString("en-IN")}`}
+                    : formatPrice(order.shippingCharge)}
                 </span>
               </div>
               {order.discount > 0 && (
                 <div className="flex justify-between text-green-500">
                   <span>Coupon ({order.coupon?.code})</span>
-                  <span>-₹{order.discount.toLocaleString("en-IN")}</span>
+                  <span>-{formatPrice(order.discount)}</span>
                 </div>
               )}
               <Separator className="my-2" />
               <div className="flex justify-between font-bold text-base">
                 <span>Total Paid</span>
-                <span>₹{order.totalAmount.toLocaleString("en-IN")}</span>
+                <span>{formatPrice(order.totalAmount)}</span>
               </div>
             </div>
           </div>

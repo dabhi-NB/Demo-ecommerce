@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
+import { useStore } from "@/hooks/useStore";
 
 const FILTERS = [
   { key: "all", label: "All Orders" },
@@ -213,6 +214,7 @@ interface OrderCardProps {
 
 function OrderCard({ order, onCancel, formatDate }: OrderCardProps) {
   const router = useRouter();
+  const { formatPrice } = useStore();
   const [cancelReason, setCancelReason] = useState("");
   const [showCancelDialog, setShowCancelDialog] = useState(false);
 
@@ -249,7 +251,7 @@ function OrderCard({ order, onCancel, formatDate }: OrderCardProps) {
           </div>
           <div className="text-right flex-shrink-0">
             <p className="font-bold text-lg">
-              ₹{order.totalAmount.toLocaleString("en-IN")}
+              {formatPrice(order.totalAmount)}
             </p>
             <p className="text-xs text-muted-foreground">
               {order.paymentMethod === "cod" ? "Cash on Delivery" : "Online"}
