@@ -197,10 +197,10 @@ export function RevenueChart() {
         />
         <Tooltip
           wrapperStyle={{ fontSize: 12 }}
-          formatter={(value: number | undefined) => [
-            `₹${(value || 0).toLocaleString()}`,
-            "Revenue",
-          ]}
+          formatter={(value: unknown) => {
+            const num = typeof value === "number" ? value : 0;
+            return [`₹${num.toLocaleString()}`, "Revenue"];
+          }}
         />
         <Legend />
         <Line

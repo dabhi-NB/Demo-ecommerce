@@ -6,7 +6,7 @@ import { useAuth } from "@/context/AuthContext";
 import { useAppSettings } from "@/hooks/useAppSettings";
 import { getNavItems, type NavItem } from "@/services/nav.service";
 
-const Footer: React.FC = () => {
+export default function Footer() {
   const currentYear = new Date().getFullYear();
   const { isAuthenticated } = useAuth();
   const { appName, store } = useAppSettings();
@@ -24,9 +24,14 @@ const Footer: React.FC = () => {
         <div className="flex flex-col md:flex-row justify-between items-start gap-6">
           {/* Brand */}
           <div className="space-y-1">
-            <p className="font-bold text-foreground">{appName || "Demo Store"}</p>
+            <p className="font-bold text-foreground">
+              {appName || "Demo Store"}
+            </p>
             <p className="text-sm text-muted-foreground">
-              {store.currency} · {store.type?.charAt(0).toUpperCase() + (store.type?.slice(1) || "")} Store
+              {store.currency} ·{" "}
+              {store.type?.charAt(0).toUpperCase() +
+                (store.type?.slice(1) || "")}{" "}
+              Store
             </p>
             <p className="text-xs text-muted-foreground">
               © {currentYear} {appName}. All rights reserved.
@@ -51,13 +56,22 @@ const Footer: React.FC = () => {
           ) : (
             /* Fallback static links */
             <nav className="flex flex-wrap gap-x-6 gap-y-2">
-              <Link href="/page/termscondition" className="text-sm text-muted-foreground hover:text-primary transition-colors">
+              <Link
+                href="/page/termscondition"
+                className="text-sm text-muted-foreground hover:text-primary transition-colors"
+              >
                 Terms & Conditions
               </Link>
-              <Link href="/page/privacypolicy" className="text-sm text-muted-foreground hover:text-primary transition-colors">
+              <Link
+                href="/page/privacypolicy"
+                className="text-sm text-muted-foreground hover:text-primary transition-colors"
+              >
                 Privacy Policy
               </Link>
-              <Link href="/contact" className="text-sm text-muted-foreground hover:text-primary transition-colors">
+              <Link
+                href="/contact"
+                className="text-sm text-muted-foreground hover:text-primary transition-colors"
+              >
                 Contact
               </Link>
             </nav>
@@ -66,6 +80,4 @@ const Footer: React.FC = () => {
       </div>
     </footer>
   );
-};
-
-export default Footer;
+}

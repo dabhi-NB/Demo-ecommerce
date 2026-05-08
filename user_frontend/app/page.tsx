@@ -34,17 +34,10 @@ import {
 
 export default function HomePage() {
   const { isAuthenticated, loading: authLoading } = useAuth();
-
   const router = useRouter();
-    isAuthenticated,
-    authLoading,
-  });
 
   // Redirect authenticated users to dashboard
   useEffect(() => {
-      isAuthenticated,
-      authLoading,
-    });
     if (isAuthenticated && !authLoading) {
       router.replace("/dashboard");
     }
@@ -479,9 +472,7 @@ function HomePageContent() {
       {/* ═══ SIGN UP CTA ═══ */}
       <section className="max-w-screen-xl mx-auto px-4 md:px-8 py-14">
         <div className="relative overflow-hidden bg-gradient-to-br from-primary/10 via-primary/6 to-background border border-primary/20 rounded-3xl p-8 md:p-12 text-center">
-          {/* Decoration */}
           <div className="absolute -top-12 -right-12 w-40 h-40 rounded-full bg-primary/10 blur-2xl pointer-events-none" />
-
           <div className="relative z-10">
             <div className="w-14 h-14 bg-primary/12 border border-primary/20 rounded-2xl flex items-center justify-center mx-auto mb-5">
               <Sparkles size={26} className="text-primary" />
@@ -522,8 +513,8 @@ function HomePageContent() {
 function HomePageFullSkeleton() {
   return (
     <div className="animate-pulse space-y-8 p-6">
-      <div className="h-2 bg-muted w-full" /> {/* announcement */}
-      <div className="h-[60vh] bg-muted rounded-3xl" /> {/* hero */}
+      <div className="h-2 bg-muted w-full" />
+      <div className="h-[60vh] bg-muted rounded-3xl" />
       <div className="grid grid-cols-4 gap-4">
         {[1, 2, 3, 4].map((i) => (
           <div key={i} className="h-36 bg-muted rounded-2xl" />

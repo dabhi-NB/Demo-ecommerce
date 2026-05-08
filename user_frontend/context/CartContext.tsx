@@ -81,10 +81,6 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   };
 
   useEffect(() => {
-      isAuthenticated,
-      hasUser: !!user,
-      userId: user?.user_id,
-    });
     if (isAuthenticated && user) {
       syncedRef.current = false;
       initCart();
