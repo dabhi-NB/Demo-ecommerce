@@ -11,6 +11,7 @@ import { getCategories, searchProducts } from "@/services/product.service";
 import { getNavItems, type NavItem } from "@/services/nav.service";
 import { useAppSettings } from "@/hooks/useAppSettings";
 import { useFeatures } from "@/hooks/useFeatures";
+import { ThemeDropdown } from "@/components/common/theme-dropdown";
 import type { ICategory, IProduct } from "@/services/product.service";
 import { resolveImageUrl } from "@/lib/utils";
 import {
@@ -288,28 +289,31 @@ export default function Header() {
                   <Search size={20} />
                 </button>
 
+                {/* THEME TOGGLE — user dark/light/system */}
+                <ThemeDropdown />
+
                 {/* WISHLIST — only if feature enabled */}
                 {isEnabled("wishlist") && (
-                <button
-                  onClick={handleWishlistClick}
-                  className="relative flex flex-col items-center gap-0.5 px-2.5 py-2 rounded-xl hover:bg-muted transition-colors group/icon"
-                  title="Wishlist"
-                >
-                  <div className="relative">
-                    <Heart
-                      size={22}
-                      className={`transition-all group-hover/icon:scale-110 ${isAuthenticated && wishlist.length > 0 ? "fill-red-500 text-red-500" : "text-foreground"}`}
-                    />
-                    {isAuthenticated && wishlist.length > 0 && (
-                      <span className="absolute -top-1.5 -right-1.5 min-w-[16px] h-4 bg-red-500 text-white text-[9px] font-black rounded-full flex items-center justify-center px-0.5 shadow-sm">
-                        {wishlist.length > 9 ? "9+" : wishlist.length}
-                      </span>
-                    )}
-                  </div>
-                  <span className="hidden lg:block text-[10px] text-muted-foreground leading-none font-medium">
-                    Wishlist
-                  </span>
-                </button>
+                  <button
+                    onClick={handleWishlistClick}
+                    className="relative flex flex-col items-center gap-0.5 px-2.5 py-2 rounded-xl hover:bg-muted transition-colors group/icon"
+                    title="Wishlist"
+                  >
+                    <div className="relative">
+                      <Heart
+                        size={22}
+                        className={`transition-all group-hover/icon:scale-110 ${isAuthenticated && wishlist.length > 0 ? "fill-red-500 text-red-500" : "text-foreground"}`}
+                      />
+                      {isAuthenticated && wishlist.length > 0 && (
+                        <span className="absolute -top-1.5 -right-1.5 min-w-[16px] h-4 bg-red-500 text-white text-[9px] font-black rounded-full flex items-center justify-center px-0.5 shadow-sm">
+                          {wishlist.length > 9 ? "9+" : wishlist.length}
+                        </span>
+                      )}
+                    </div>
+                    <span className="hidden lg:block text-[10px] text-muted-foreground leading-none font-medium">
+                      Wishlist
+                    </span>
+                  </button>
                 )}
 
                 {/* CART */}

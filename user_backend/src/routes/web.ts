@@ -117,9 +117,7 @@ router.get('/wishlist', userAuthMiddleware, getWishlist)
 router.post('/wishlist/toggle', userAuthMiddleware, toggleWishlist)
 router.delete('/wishlist', userAuthMiddleware, clearWishlistCtrl)
 
-// Settings routes (public - requires API key only)
-// router.get("/settings/public", settingController.getPublicSettings);
-router.post("/setting/public/get", settingController.getPublicSettings);
+// Settings routes (public)
 router.post("/setting/get", settingController.getSettingValue);
 
 // Protected auth routes (require authentication)

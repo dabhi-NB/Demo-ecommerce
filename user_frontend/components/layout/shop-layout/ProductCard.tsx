@@ -12,6 +12,7 @@ import { useAuth } from "@/context/AuthContext";
 import { useCart } from "@/context/CartContext";
 import { useWishlist } from "@/context/WishlistContext";
 import type { IProduct } from "@/services/product.service";
+import { useStore } from "@/hooks/useStore";
 
 interface ProductCardProps {
   product: IProduct;
@@ -23,6 +24,7 @@ export default function ProductCard({ product, className }: ProductCardProps) {
   const { addToCart, isInCart, openDrawer } = useCart();
   const { toggleWishlist, isWishlisted } = useWishlist();
   const router = useRouter();
+  const { formatPrice } = useStore();
 
   // DEBUG STOCK - console.log(`Product ${product._id}: hasVariants=${product.hasVariants}, stock=${product.stock}, totalStock=${product.totalStock}, displayStock=${totalStock}`);
 
@@ -114,14 +116,14 @@ export default function ProductCard({ product, className }: ProductCardProps) {
             src={General.getProductImageUrl(product.images[0])}
             alt={product.name}
             style={{
-              position: 'absolute',
+              position: "absolute",
               top: 0,
               left: 0,
-              width: '100%',
-              height: '100%',
-              objectFit: 'contain',
-              padding: '12px',
-              transition: 'transform 400ms',
+              width: "100%",
+              height: "100%",
+              objectFit: "contain",
+              padding: "12px",
+              transition: "transform 400ms",
             }}
             className="group-hover:scale-[1.06]"
             loading="lazy"
@@ -132,14 +134,14 @@ export default function ProductCard({ product, className }: ProductCardProps) {
             src={AppConfig.DEFULT_IMAGE}
             alt="No image"
             style={{
-              position: 'absolute',
+              position: "absolute",
               top: 0,
               left: 0,
-              width: '100%',
-              height: '100%',
-              objectFit: 'contain',
-              padding: '12px',
-              opacity: 0.2
+              width: "100%",
+              height: "100%",
+              objectFit: "contain",
+              padding: "12px",
+              opacity: 0.2,
             }}
             loading="lazy"
           />
@@ -225,17 +227,16 @@ export default function ProductCard({ product, className }: ProductCardProps) {
         <div className="flex items-baseline gap-2 mt-2 flex-wrap">
           {hasVariants && minPrice !== maxPrice ? (
             <p className="text-base font-black text-foreground">
-              ₹{minPrice?.toLocaleString("en-IN")} – ₹
-              {maxPrice?.toLocaleString("en-IN")}
+              {formatPrice(minPrice ?? 0)} – {formatPrice(maxPrice ?? 0)}
             </p>
           ) : (
             <div className="flex items-center gap-2">
               <span className="text-[15px] font-black text-foreground">
-                ₹{price?.toLocaleString("en-IN")}
+                {formatPrice(price ?? 0)}
               </span>
               {product.salePrice && (
                 <span className="text-xs text-muted-foreground/70 line-through">
-                  ₹{product.price?.toLocaleString("en-IN")}
+                  {formatPrice(product.price)}
                 </span>
               )}
             </div>
@@ -256,7 +257,7 @@ export default function ProductCard({ product, className }: ProductCardProps) {
         <p
           className={`text-[11px] mt-0.5 font-medium ${price >= 999 ? "text-green-600 dark:text-green-400" : "text-muted-foreground"}`}
         >
-          {price >= 999 ? "✓ Free delivery" : `+ ₹99 delivery`}
+          {price >= 999 ? "✓ Free delivery" : "+ ₹99 delivery"}
         </p>
 
         <button

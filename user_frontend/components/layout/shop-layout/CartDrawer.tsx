@@ -15,6 +15,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { useCart } from "@/context/CartContext";
+import { useStore } from "@/hooks/useStore";
 
 interface CartDrawerProps {
   open: boolean;
@@ -27,6 +28,7 @@ export default function CartDrawer({ open, onOpenChange }: CartDrawerProps) {
     useCart();
   const router = useRouter();
 
+  const { formatPrice } = useStore();
   const shipping = totalPrice >= 999 ? 0 : 99;
   const total = totalPrice + shipping;
 
@@ -122,7 +124,7 @@ export default function CartDrawer({ open, onOpenChange }: CartDrawerProps) {
                   <p className="text-xs text-foreground/80 mb-1.5">
                     Add{" "}
                     <span className="font-bold text-primary">
-                      ₹{(999 - totalPrice).toLocaleString("en-IN")}
+                      {formatPrice(999 - totalPrice)}
                     </span>{" "}
                     more for <span className="font-bold">FREE delivery</span>
                   </p>
@@ -159,8 +161,9 @@ export default function CartDrawer({ open, onOpenChange }: CartDrawerProps) {
                         src={resolveImageUrl(item.image)}
                         alt={item.name}
                         className="object-contain w-full h-full p-1"
-onError={(e) => {
-                          (e.target as HTMLImageElement).src = AppConfig.DEFULT_IMAGE;
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src =
+                            AppConfig.DEFULT_IMAGE;
                         }}
                       />
                     </div>
@@ -174,25 +177,32 @@ onError={(e) => {
                         {item.name}
                       </p>
                     </Link>
-                    
+
                     {/* Variant Combination Display */}
-                    {item.variantCombination && item.variantCombination.length > 0 && (
-                      <div className="flex gap-1 flex-wrap mt-0.5">
-                        {item.variantCombination.map((c: any, i: number) => (
-                          <span key={i} className="text-[10px] bg-muted px-2 py-0.5 rounded-full text-muted-foreground">
-                            {c.name}: <span className="font-semibold text-foreground">{c.value}</span>
-                          </span>
-                        ))}
-                      </div>
-                    )}
-                    
+                    {item.variantCombination &&
+                      item.variantCombination.length > 0 && (
+                        <div className="flex gap-1 flex-wrap mt-0.5">
+                          {item.variantCombination.map((c: any, i: number) => (
+                            <span
+                              key={i}
+                              className="text-[10px] bg-muted px-2 py-0.5 rounded-full text-muted-foreground"
+                            >
+                              {c.name}:{" "}
+                              <span className="font-semibold text-foreground">
+                                {c.value}
+                              </span>
+                            </span>
+                          ))}
+                        </div>
+                      )}
+
                     {item.variant?.color && !item.variantCombination && (
                       <p className="text-xs text-muted-foreground mt-0.5">
                         Color: {item.variant.color}
                       </p>
                     )}
                     <p className="text-sm font-black text-foreground mt-1">
-                      ₹{(item.price * item.quantity).toLocaleString("en-IN")}
+                      {formatPrice(item.price * item.quantity)}
                     </p>
                     <div className="flex items-center gap-3 mt-2">
                       <div className="flex items-center border border-border rounded-xl overflow-hidden h-8">
@@ -243,7 +253,7 @@ onError={(e) => {
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between text-muted-foreground">
                   <span>Subtotal ({totalItems} items)</span>
-                  <span>₹{totalPrice.toLocaleString("en-IN")}</span>
+                  <span>{formatPrice(totalPrice)}</span>
                 </div>
                 <div className="flex justify-between text-muted-foreground">
                   <span>Delivery</span>
@@ -252,12 +262,12 @@ onError={(e) => {
                       shipping === 0 ? "text-green-600 font-semibold" : ""
                     }
                   >
-                    {shipping === 0 ? "FREE" : "₹99"}
+                    {shipping === 0 ? "FREE" : formatPrice(99)}
                   </span>
                 </div>
                 <div className="flex justify-between font-black text-base pt-2 border-t border-border text-foreground">
                   <span>Total</span>
-                  <span>₹{total.toLocaleString("en-IN")}</span>
+                  <span>{formatPrice(total)}</span>
                 </div>
               </div>
               <button

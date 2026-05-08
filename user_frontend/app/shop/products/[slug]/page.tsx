@@ -29,6 +29,7 @@ import {
 import { useCart } from "@/context/CartContext";
 import { useWishlist } from "@/context/WishlistContext";
 import { useAuth } from "@/context/AuthContext";
+import { useStore } from "@/hooks/useStore";
 import AppConfig from "@/appConfig";
 import General from "@/lib/general";
 import { toast } from "sonner";
@@ -41,6 +42,7 @@ export default function ProductDetailPage() {
   const slug = params?.slug as string;
 
   const { isAuthenticated } = useAuth();
+  const { formatPrice } = useStore();
   const { addToCart, isInCart } = useCart();
   const { toggleWishlist, isWishlisted } = useWishlist();
 
@@ -544,11 +546,11 @@ export default function ProductDetailPage() {
                 className="text-3xl font-black text-foreground"
                 style={{ fontFamily: "var(--font-heading)" }}
               >
-                ₹{displayPrice?.toLocaleString("en-IN")}
+                {formatPrice(displayPrice ?? 0)}
               </span>
               {originalPrice && originalPrice !== displayPrice && (
                 <span className="text-lg text-muted-foreground line-through">
-                  ₹{originalPrice?.toLocaleString("en-IN")}
+                  {formatPrice(originalPrice ?? 0)}
                 </span>
               )}
               {originalPrice &&
